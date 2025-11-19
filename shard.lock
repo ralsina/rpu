@@ -4,6 +4,14 @@ shards:
     git: https://github.com/sija/backtracer.cr.git
     version: 1.2.4
 
+  docopt:
+    git: https://github.com/ralsina/docopt.cr.git
+    version: 0.3.0
+
+  docopt-config:
+    git: https://github.com/ralsina/docopt-config.git
+    version: 0.1.0+git.commit.5421c74745d0212c2d2ab28c72a4a73d8c87adee
+
   exception_page:
     git: https://github.com/crystal-loot/exception_page.git
     version: 0.5.0

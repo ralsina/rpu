@@ -5,11 +5,131 @@ require "time"
 require "file_utils"
 require "ecr"
 require "yaml"
+require "http"
+require "uri"
+require "docopt"
+require "docopt-config"
 
-# Configuration
-GITHUB_USER = "ralsina"
-PROJECTS_DIR = "projects"
-DATA_FILE = "public/projects.json"
+# Command line interface definition
+DOC = <<-DOCOPT
+Crystal Projects Visualization Data Collection
+
+Usage:
+  #{File.basename(PROGRAM_NAME)} [--github-user=<user>] [--max-depth=<depth>] [--max-projects=<count>] [--rate-limit=<delay>] [--data-file=<file>] [--help]
+  #{File.basename(PROGRAM_NAME)} -h | --help
+
+Options:
+  --github-user=<user>      GitHub username to scan repositories for [default: ralsina]
+  --max-depth=<depth>       Maximum recursion depth for dependencies [default: 3]
+  --max-projects=<count>    Maximum total projects to process [default: 500]
+  --rate-limit=<delay>      Seconds to wait between API calls [default: 0.1]
+  --data-file=<file>        Output JSON file path [default: public/projects.json]
+  -h, --help               Show this help message
+
+Environment Variables:
+  GITHUB_USER              Same as --github-user
+  MAX_DEPTH               Same as --max-depth
+  MAX_PROJECTS            Same as --max-projects
+  RATE_LIMIT_DELAY        Same as --rate-limit
+  DATA_FILE               Same as --data-file
+
+Examples:
+  #{File.basename(PROGRAM_NAME)}                           # Use defaults
+  #{File.basename(PROGRAM_NAME)} --github-user=myuser      # Scan different user
+  #{File.basename(PROGRAM_NAME)} --max-depth=2             # Shallow dependency scan
+  #{File.basename(PROGRAM_NAME)} --max-projects=100        # Process fewer projects
+DOCOPT
+
+# Helper functions to extract values from docopt results
+def get_string_value(value)
+  case value
+  when String
+    value
+  when Array(String)
+    value.first? if value.size == 1
+  when Nil
+    nil
+  when Bool
+    value.to_s
+  else
+    value.to_s
+  end
+end
+
+def get_int_value(value)
+  case value
+  when Int32, Int64
+    value.to_i
+  when String
+    value.to_i?
+  when Array(String)
+    value.first?.try(&.to_i?) if value.size == 1
+  when Nil
+    nil
+  else
+    nil
+  end
+end
+
+def get_float_value(value)
+  case value
+  when Float32, Float64
+    value.to_f
+  when String
+    value.to_f?
+  when Array(String)
+    value.first?.try(&.to_f?) if value.size == 1
+  when Nil
+    nil
+  else
+    nil
+  end
+end
+
+# Extract configuration with defaults
+def get_config
+  # Try to load config file first
+  config_file = nil
+  if File.exists?(".rpu.yaml")
+    config_file = YAML.parse(File.read(".rpu.yaml"))
+  elsif File.exists?(File.expand_path("~/.rpu.yaml"))
+    config_file = YAML.parse(File.read(File.expand_path("~/.rpu.yaml")))
+  end
+
+  # Parse command line arguments
+  args = Docopt.docopt(DOC, argv: ARGV, help: true, version: "Crystal Projects Visualization 0.1.0")
+
+  # Extract configuration with precedence: CLI > env vars > config file > defaults
+  {
+    "github-user" => get_string_value(args["--github-user"]) ||
+                     ENV["GITHUB_USER"]? ||
+                     (config_file.try(&.["github-user"]?).try(&.as_s) if config_file) ||
+                     "ralsina",
+    "max-depth" => get_int_value(args["--max-depth"]) ||
+                   ENV["MAX_DEPTH"]?.try(&.to_i) ||
+                   (config_file.try(&.["max-depth"]?).try(&.as_i) if config_file) ||
+                   3,
+    "max-projects" => get_int_value(args["--max-projects"]) ||
+                      ENV["MAX_PROJECTS"]?.try(&.to_i) ||
+                      (config_file.try(&.["max-projects"]?).try(&.as_i) if config_file) ||
+                      500,
+    "rate-limit" => get_float_value(args["--rate-limit"]) ||
+                    ENV["RATE_LIMIT_DELAY"]?.try(&.to_f) ||
+                    (config_file.try(&.["rate-limit"]?).try(&.as_f) if config_file) ||
+                    0.1,
+    "data-file" => get_string_value(args["--data-file"]) ||
+                   ENV["DATA_FILE"]? ||
+                   (config_file.try(&.["data-file"]?).try(&.as_s) if config_file) ||
+                   "public/projects.json"
+  }
+end
+
+CONFIG = get_config
+DATA_FILE = CONFIG["data-file"].to_s
+MAX_DEPTH = CONFIG["max-depth"].to_i
+MAX_PROJECTS = CONFIG["max-projects"].to_i
+RATE_LIMIT_DELAY = CONFIG["rate-limit"].to_f
+GITHUB_USER = CONFIG["github-user"].to_s
 
 # ANSI colors for output
 module Colors
@@ -36,6 +156,8 @@ struct Project
   property external_dependencies : Array(String) = [] of String
   property fork : Bool = false
   property external : Bool = false
+  property depth : Int32 = 0        # Depth at which this project was discovered
+  property discovered_from : String? # Project that led to discovering this one
 
   def initialize(@name : String, @path : String, @url : String)
     @shard_name = @name
@@ -43,43 +165,94 @@ struct Project
 
   def initialize(@name : String, @shard_name : String, @path : String, @url : String)
   end
+
+  def initialize(@name : String, @shard_name : String, @path : String, @url : String, @depth : Int32, @discovered_from : String?)
+  end
 end
 
 # Main data collector class
 class ProjectDataCollector
   def initialize
     @projects = [] of Project
-    @external_deps_info = Hash(String, String).new
+    @processed_repos = Set(String).new      # Track repos we've already processed
+    @api_queue = Array(Tuple(String, Int32, String?)).new # (repo, depth, discovered_from)
+    @processed_count = 0
   end
 
-  # Get all repositories for the user that have shard.yml
+  # Make a GitHub API request with rate limiting
+  private def github_api_request(endpoint : String) : JSON::Any?
+    sleep(RATE_LIMIT_DELAY.seconds) # Rate limiting
+
+    url = "https://api.github.com/#{endpoint}"
+
+    begin
+      HTTP::Client.get(url) do |response|
+        if response.success?
+          JSON.parse(response.body_io)
+        elsif response.status_code == 403
+          puts Colors.yellow("→ Rate limit hit for #{endpoint}, waiting...")
+          sleep(60.seconds)
+          github_api_request(endpoint) # Retry once
+        elsif response.status_code == 404
+          nil # Not found
+        else
+          puts Colors.yellow("→ API request failed for #{endpoint}: #{response.status_code}")
+          nil
+        end
+      end
+    rescue ex
+      puts Colors.yellow("→ API request error for #{endpoint}: #{ex.message}")
+      nil
+    end
+  end
+
+  # Fetch shard.yml content via GitHub API
+  private def fetch_shard_yaml(repo : String) : YAML::Any?
+    data = github_api_request("repos/#{repo}/contents/shard.yml")
+    return nil if data.nil?
+
+    if data["content"]? && data["encoding"]? == "base64"
+      content = Base64.decode_string(data["content"].as_s)
+      begin
+        YAML.parse(content)
+      rescue ex
+        puts Colors.yellow("→ Failed to parse shard.yml for #{repo}: #{ex.message}")
+        nil
+      end
+    else
+      nil
+    end
+  end
+
+  # Get repository information
+  private def get_repo_info(repo : String) : JSON::Any?
+    github_api_request("repos/#{repo}")
+  end
+
+  # Get Crystal repositories for the user
   def get_crystal_repos
     puts "#{Colors.blue("→")} Finding Crystal repositories for #{GITHUB_USER}..."
 
     repos = [] of String
-    output = IO::Memory.new
-    error = IO::Memory.new
+    page = 1
+    per_page = 100
 
-    result = Process.run("gh", ["repo", "list", GITHUB_USER, "--limit", "200"],
-                         output: output,
-                         error: error)
+    loop do
+      data = github_api_request("users/#{GITHUB_USER}/repos?page=#{page}&per_page=#{per_page}&type=all")
+      break if data.nil?
 
-    if result.success?
-      output.to_s.each_line do |line|
-        parts = line.split(/\t+/)
-        repo = parts[0].strip
-        repo_info = parts.size > 2 ? parts[2] : ""
+      repos_data = data.as_a
+      break if repos_data.empty?
+
+      repos_data.each do |repo_data|
+        repo_name = repo_data["full_name"].as_s
+        print Colors.blue(".")
 
         # Check if it has shard.yml
-        check_output = IO::Memory.new
-        check_error = IO::Memory.new
-        check_result = Process.run("gh", ["api", "repos/#{repo}/contents/shard.yml"],
-                                  output: check_output,
-                                  error: check_error)
-        if check_result.success?
-          repos << repo
+        if fetch_shard_yaml(repo_name)
+          repos << repo_name
           # Check if it's a fork
-          if repo_info.includes?("fork")
+          if repo_data["fork"].as_bool
             print Colors.yellow("🔄")
           else
             print Colors.green("✓")
@@ -88,321 +261,187 @@ class ProjectDataCollector
           print Colors.red("✗")
         end
       end
-      puts
-    else
-      puts Colors.red("Failed to get repository list: #{error.to_s}")
-      exit 1
+
+      page += 1
+      break if repos_data.size < per_page
     end
 
+    puts
+    puts Colors.green("✓ Found #{repos.size} Crystal repositories")
     repos
   end
 
-  # Clone repositories if they don't exist
-  def clone_repositories(repos)
-    puts "#{Colors.blue("→")} Cloning repositories..."
-
-    FileUtils.mkdir_p(PROJECTS_DIR) unless Dir.exists?(PROJECTS_DIR)
-
-    Dir.cd(PROJECTS_DIR) do
-      repos.each do |repo|
-        dir_name = repo.split("/")[1]
-        if Dir.exists?(dir_name)
-          puts "#{Colors.yellow("→")} #{dir_name} already exists, skipping..."
-          next
-        end
-
-        puts "#{Colors.blue("→")} Cloning #{repo}..."
-        result = Process.run("git", ["clone", "git@github.com:#{repo}.git"],
-                            output: Process::Redirect::Inherit,
-                            error: Process::Redirect::Inherit)
-
-        if result.success?
-          puts Colors.green("✓ Cloned #{repo}")
-        else
-          puts Colors.red("✗ Failed to clone #{repo}")
-        end
-      end
-    end
-  end
-
-  # Get shard name from shard.yml
-  def parse_shard_name(project_path) : String
+  # Parse shard name from shard YAML data
+  private def parse_shard_name(shard_data : YAML::Any, repo_path : String) : String
     # Special case for docopt.cr - hardcoded as "docopt"
-    if project_path.includes?("docopt.cr")
+    if repo_path.includes?("docopt.cr")
       return "docopt"
     end
 
-    shard_file = File.join(project_path, "shard.yml")
-
-    if File.exists?(shard_file)
-      begin
-        shard = YAML.parse(File.read(shard_file))
-        if shard["name"]?
-          return shard["name"].as_s
-        end
-      rescue ex
-        puts Colors.yellow("→ Warning: Failed to parse shard name from #{shard_file}: #{ex.message}")
-      end
+    if shard_data["name"]?
+      return shard_data["name"].as_s
     end
 
-    # Fallback to directory name
-    File.basename(project_path)
+    # Fallback to repository name
+    repo_path.split("/")[-1]
   end
 
-  # Parse shard.yml to get dependencies
-  def parse_dependencies(project_path) : Array(String)
-    shard_file = File.join(project_path, "shard.yml")
+  # Parse dependencies from shard YAML data
+  private def parse_dependencies(shard_data : YAML::Any) : Array(String)
     dependencies = [] of String
 
-    if File.exists?(shard_file)
-      begin
-        shard = YAML.parse(File.read(shard_file))
-        if shard["dependencies"]?
-          shard["dependencies"].as_h.each_key do |dep|
-            dependencies << dep.to_s
-          end
-        end
-      rescue ex
-        puts Colors.yellow("→ Warning: Failed to parse #{shard_file}: #{ex.message}")
+    if shard_data["dependencies"]?
+      shard_data["dependencies"].as_h.each_key do |dep|
+        dependencies << dep.to_s
       end
     end
 
     dependencies
   end
 
-  # Get last modification date using git
-  def get_last_modified(project_path) : Time?
-    Dir.cd(project_path) do
-      output = IO::Memory.new
-      error = IO::Memory.new
-      result = Process.run("git", ["log", "-1", "--format=%cI"],
-                          output: output,
-                          error: error)
+  # Extract repository URL from dependency specification in shard YAML
+  private def extract_dependency_url(shard_data : YAML::Any, dep_name : String) : String?
+    return nil unless shard_data["dependencies"]?
 
-      if result.success?
-        time_str = output.to_s.strip
-        Time.parse_rfc3339(time_str)
-      else
-        # Fallback to ISO format
-        fallback = IO::Memory.new
-        fallback_error = IO::Memory.new
-        fallback_result = Process.run("git", ["log", "-1", "--format=%ci"],
-                                     output: fallback,
-                                     error: fallback_error)
-        if fallback_result.success?
-          time_str = fallback.to_s.strip
-          # Parse format like "2025-11-19 16:02:15 -0300"
-          Time.parse(time_str, "%Y-%m-%d %H:%M:%S %z", Time::Location::UTC)
-        else
-          nil
+    deps = shard_data["dependencies"].as_h
+    return nil unless deps[dep_name]?
+
+    dep_config = deps[dep_name]
+
+    # Handle different dependency formats
+    case dep_config
+    when .as_h?
+      dep_hash = dep_config.as_h
+      if dep_hash["github"]?
+        github_path = dep_hash["github"].as_s
+        return "https://github.com/#{github_path}"
+      elsif dep_hash["git"]?
+        git_url = dep_hash["git"].as_s
+        if git_url.includes?("github.com")
+          # Extract user/repo from git URL
+          match = git_url.match(/github\.com\/([^\/]+\/[^\/\s\.]+)/)
+          return "https://github.com/#{match[1]}" if match
+        end
+      end
+    when .as_s?
+      # Simple dependency name, try common patterns
+      common_patterns = [
+        "crystal-lang/#{dep_name}",
+        "luckyframework/#{dep_name}",
+        "ivorg/#{dep_name}",
+        "straight-shoota/#{dep_name}",
+        "Sija/#{dep_name}",
+      ]
+
+      common_patterns.each do |pattern|
+        repo_info = get_repo_info(pattern)
+        return "https://github.com/#{pattern}" if repo_info
+      end
+    end
+
+    nil
+  end
+
+  
+  # Process a single repository and add its dependencies to the queue
+  private def process_repository(repo : String, depth : Int32, discovered_from : String? = nil)
+    return if @processed_repos.includes?(repo)
+    return if @processed_count >= MAX_PROJECTS
+
+    @processed_repos << repo
+    @processed_count += 1
+
+    puts "#{Colors.blue("→")} Processing #{repo} (depth: #{depth})..."
+
+    # Get repository information
+    repo_info = get_repo_info(repo)
+    return if repo_info.nil?
+
+    # Get shard.yml data
+    shard_data = fetch_shard_yaml(repo)
+    return if shard_data.nil?
+
+    # Extract project details
+    repo_name = repo.split("/")[-1]
+    shard_name = parse_shard_name(shard_data, repo)
+    dependencies = parse_dependencies(shard_data)
+
+    # Create project
+    project = Project.new(
+      repo_name,
+      shard_name,
+      "api",  # Use "api" as path since we're not cloning
+      "https://github.com/#{repo}",
+      depth,
+      discovered_from
+    )
+
+    # Set additional properties
+    project.description = repo_info["description"]?.try(&.as_s) || ""
+    project.fork = repo_info["fork"].as_bool
+    project.dependencies = dependencies
+    project.last_modified = repo_info["pushed_at"]?.try { |t| Time.parse_rfc3339(t.as_s) }
+    project.loc = 0  # Skip LOC calculation for API-based approach
+
+    @projects << project
+
+    # Add dependencies to queue for recursive processing
+    if depth < MAX_DEPTH
+      dependencies.each do |dep|
+        dep_url = extract_dependency_url(shard_data, dep)
+        if dep_url
+          dep_path = dep_url.sub("https://github.com/", "")
+          unless @processed_repos.includes?(dep_path)
+            @api_queue << {dep_path, depth + 1, repo}
+          end
         end
       end
     end
+
+    puts Colors.green("✓ Processed #{repo_name} (#{dependencies.size} deps)")
   end
 
-  # Calculate LOC using tokei
-  def calculate_loc(project_path) : Int32
-    output = IO::Memory.new
-    error = IO::Memory.new
-    result = Process.run("tokei", ["--output", "json", project_path],
-                        output: output,
-                        error: error)
+  # Collect data recursively through dependencies
+  def collect_project_data(initial_repos)
+    puts "#{Colors.blue("→")} Starting recursive dependency collection..."
 
-    if result.success?
-      json = JSON.parse(output.to_s)
-      total_loc = 0
-
-      # Look for Crystal specifically, but also count all if not found
-      if json["Crystal"]?
-        total_loc += json["Crystal"]["code"].as_i
-      elsif json["Total"]?
-        total_loc = json["Total"]["code"].as_i
-      end
-
-      total_loc
-    else
-      0
+    # Initialize queue with initial repositories
+    initial_repos.each do |repo|
+      @api_queue << {repo, 0, nil}  # Start at depth 0
     end
-  end
 
-  # Collect data for all projects
-  def collect_project_data(repos)
-    puts "#{Colors.blue("→")} Collecting project data..."
-
-    repos.each do |repo|
-      repo_name = repo.split("/")[1]
-      project_path = File.join(PROJECTS_DIR, repo_name)
-
-      unless Dir.exists?(project_path)
-        puts Colors.yellow("→ Skipping #{repo_name} (directory not found)")
-        next
-      end
-
-      puts "#{Colors.blue("→")} Analyzing #{repo_name}..."
-
-      # Get repo description
-      api_output = IO::Memory.new
-      api_error = IO::Memory.new
-      api_result = Process.run("gh", ["api", "repos/#{repo}"],
-                              output: api_output,
-                              error: api_error)
-
-      description = ""
-      is_fork = false
-      if api_result.success?
-        json = JSON.parse(api_output.to_s)
-        if json["description"]?
-          desc = json["description"]
-          description = desc.as_s? if !desc.nil?
-        end
-        description = "" if description.nil?
-
-        # Check if it's a fork
-        if json["fork"]?
-          is_fork = json["fork"].as_bool
-        end
-      end
-
-      project = Project.new(
-        repo_name,
-        parse_shard_name(project_path),
-        project_path,
-        "https://github.com/#{repo}",
-      )
-      project.description = description
-      project.fork = is_fork
-      project.dependencies = parse_dependencies(project_path)
-      project.last_modified = get_last_modified(project_path)
-      project.loc = calculate_loc(project_path)
-
-      @projects << project
-      puts Colors.green("✓ Analyzed #{repo_name} (#{project.loc} LOC, #{project.dependencies.size} deps)")
+    # Process queue
+    while !@api_queue.empty? && @processed_count < MAX_PROJECTS
+      repo, depth, discovered_from = @api_queue.shift
+      process_repository(repo, depth, discovered_from)
     end
+
+    puts Colors.green("✓ Processed #{@projects.size} repositories recursively")
   end
 
-  # Cross-reference dependencies to find internal vs external
+  # Simplified cross-reference method since we already track dependencies during collection
   def cross_reference_dependencies
-    puts "#{Colors.blue("→")} Cross-referencing dependencies..."
+    puts "#{Colors.blue("→")} Finalizing dependency relationships..."
 
-    # Get original project names (before we add external ones)
-    original_projects = @projects.dup
-    project_names = original_projects.map(&.name).to_set
+    # Count external vs internal dependencies
+    internal_count = 0
+    external_count = 0
 
-    original_projects.each do |project|
-      internal_deps = [] of String
-      external_project_deps = [] of String
-
+    @projects.each do |project|
       project.dependencies.each do |dep|
-        # Check if any of our projects match this dependency
-        matched = original_projects.find { |p| dep_matches(dep, p.shard_name) }
-        if matched
-          internal_deps << matched.shard_name
+        if @projects.any? { |p| p.shard_name == dep }
+          internal_count += 1
         else
-          external_project_deps << dep
-          # Extract URL from this project's shard.yml for this dependency
-          extract_dependency_url(project.path, dep)
+          external_count += 1
+          project.external_dependencies << dep
         end
-      end
-
-      # Update the project in @projects array
-      project_to_update = @projects.find { |p| p.name == project.name }
-      if project_to_update
-        project_to_update.dependencies = internal_deps
-        project_to_update.external_dependencies = external_project_deps
       end
     end
 
-    puts "#{Colors.blue("→")} Found #{@external_deps_info.size} unique external dependencies"
-
-    # Add external dependency nodes with exact URLs from shard.yml
-    @external_deps_info.each do |dep_name, repo_url|
-      external_project = Project.new(
-        dep_name,
-        dep_name,  # For external dependencies, shard_name == dep_name
-        "external",
-        repo_url,
-      )
-      external_project.description = "External Crystal dependency"
-      external_project.loc = 0
-      external_project.dependencies = [] of String
-      external_project.external_dependencies = [] of String
-      external_project.fork = false
-      external_project.external = true
-      @projects << external_project
-    end
+    puts "#{Colors.blue("→")} Found #{internal_count} internal dependencies, #{external_count} external references"
   end
 
-  # Extract the repository URL for a specific dependency from shard.yml
-  private def extract_dependency_url(project_path, dep_name)
-    shard_file = File.join(project_path, "shard.yml")
-
-    if File.exists?(shard_file)
-      begin
-        shard_content = File.read(shard_file)
-
-        # Look for the dependency section and extract the GitHub URL
-        # Handle both formats:
-        # github: user/repo
-        # git: https://github.com/user/repo.git
-
-        # Use regex to find the dependency section
-        dep_section_regex = /#{Regex.escape(dep_name)}:\s*\n((?:\s+.*\n)*)/m
-        match = shard_content.match(dep_section_regex)
-
-        if match
-          dep_content = match[1]
-
-          # Look for github: or git: patterns
-          github_match = dep_content.match(/github:\s*([^\/\s]+\/[^\/\s]+)/)
-          if github_match
-            repo_path = github_match[1]
-            @external_deps_info[dep_name] = "https://github.com/#{repo_path}"
-            return
-          end
-
-          git_match = dep_content.match(/git:\s*https:\/\/github\.com\/([^\/\s]+\/[^\/\s]+)\.git/)
-          if git_match
-            repo_path = git_match[1]
-            @external_deps_info[dep_name] = "https://github.com/#{repo_path}"
-            return
-          end
-        end
-
-        # Fallback to common patterns if specific extraction fails
-        common_patterns = [
-          "crystal-lang/#{dep_name}",
-          "luckyframework/#{dep_name}",
-          "ivorg/#{dep_name}",
-          "straight-shoota/#{dep_name}",
-          "Sija/#{dep_name}",
-        ]
-
-        repo_path = common_patterns.find do |pattern|
-          output = IO::Memory.new
-          error = IO::Memory.new
-          result = Process.run("gh", ["api", "repos/#{pattern}"],
-                              output: output,
-                              error: error)
-          result.success?
-        end
-
-        if repo_path
-          @external_deps_info[dep_name] = "https://github.com/#{repo_path}"
-        end
-
-      rescue ex
-        puts Colors.yellow("→ Warning: Failed to parse #{shard_file}: #{ex.message}")
-      end
-    end
-  end
-
-  # Check if dependency name matches project name (considering variations)
-  private def dep_matches(dep : String, project_name : String)
-    return dep == project_name
-    return dep == "#{project_name}.cr"
-    return dep.gsub(/[^a-zA-Z0-9]/, "").downcase == project_name.gsub(/[^a-zA-Z0-9]/, "").downcase
-  end
-
+  
   # Generate project data JSON
   def generate_json
     puts "#{Colors.blue("→")} Generating project data..."
@@ -416,20 +455,26 @@ class ProjectDataCollector
   # Run the full collection process
   def run
     puts "#{Colors.green("🚀 Starting Crystal Project Visualization Data Collection")}"
+    puts "#{Colors.blue("→")} Configuration:"
+    puts "   • GitHub user: #{GITHUB_USER}"
+    puts "   • Max depth: #{MAX_DEPTH}"
+    puts "   • Max projects: #{MAX_PROJECTS}"
+    puts "   • Rate limit delay: #{RATE_LIMIT_DELAY}s"
+    puts "   • Output file: #{DATA_FILE}"
 
     repos = get_crystal_repos
     puts Colors.green("✓ Found #{repos.size} Crystal repositories")
 
-    clone_repositories(repos)
     collect_project_data(repos)
     cross_reference_dependencies
 
-    puts Colors.green("✓ Collected data for #{@projects.size} projects")
+    puts Colors.green("✓ Processed #{@projects.size} repositories recursively")
 
     generate_json
 
     puts Colors.green("🎉 Data collection complete!")
     puts "#{Colors.blue("→")} Run 'shards install' && 'crystal src/server.cr' to start the visualization"
+    puts "#{Colors.blue("→")} The graph shows dependencies across #{MAX_DEPTH} levels of recursion"
   end
 end
 

@@ -7,6 +7,10 @@ dependencies:
   spec-kemal:
     github: kemalcr/spec-kemal
     branch: master
+  docopt:
+    github: ralsina/docopt.cr
+  docopt-config:
+    github: ralsina/docopt-config
 
 targets:
   collect_data:
