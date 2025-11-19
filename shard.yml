@@ -1,0 +1,15 @@
+name: rpu
+version: 0.1.0
+
+dependencies:
+  kemal:
+    github: kemalcr/kemal
+  spec-kemal:
+    github: kemalcr/spec-kemal
+    branch: master
+
+targets:
+  collect_data:
+    main: src/collect_data.cr
+  server:
+    main: src/server.cr

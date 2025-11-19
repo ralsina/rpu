@@ -1,0 +1,21 @@
+# Crystal build artifacts
+bin/
+lib/
+
+# Generated data
+projects/
+all_repos.txt
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log

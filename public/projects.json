@@ -1,0 +1,948 @@
+[
+  {
+    "name": "hace",
+    "path": "projects/hace",
+    "description": "Hace is sort-of-make-like implemented using ralsina/croupier",
+    "url": "https://github.com/ralsina/hace",
+    "loc": 1330,
+    "last_modified": "2025-11-19T16:02:15-03:00",
+    "dependencies": [
+      "croupier",
+      "docopt",
+      "crinja",
+      "dotenv"
+    ],
+    "external_dependencies": [],
+    "fork": false,
+    "external": false
+  },
+  {
+    "name": "docopt.cr",
+    "path": "projects/docopt.cr",
+    "description": "docopt for crystal-lang",
+    "url": "https://github.com/ralsina/docopt.cr",
+    "loc": 0,
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": true,
+    "external": false
+  },
+  {
+    "name": "croupier",
+    "path": "projects/croupier",
+    "description": "A library to create and execute tasks with dependencies",
+    "url": "https://github.com/ralsina/croupier",
+    "loc": 1820,
+    "last_modified": "2025-11-19T07:21:10-03:00",
+    "dependencies": [
+      "crystalline",
+      "inotify",
+      "kiwi"
+    ],
+    "external_dependencies": [],
+    "fork": false,
+    "external": false
+  },
+  {
+    "name": "nicolino",
+    "path": "projects/nicolino",
+    "description": "A not-quite-minimalisting SSG written in Crystal",
+    "url": "https://github.com/ralsina/nicolino",
+    "loc": 1805,
+    "last_modified": "2025-11-19T06:38:05-03:00",
+    "dependencies": [
+      "crinja",
+      "RSS",
+      "croupier",
+      "live_reload",
+      "lexbor",
+      "cr-discount",
+      "shortcodes",
+      "totem",
+      "cronic",
+      "baked_file_system",
+      "progress_bar",
+      "sixteen",
+      "vips",
+      "pluto",
+      "stumpy_png",
+      "oplog",
+      "polydocopt"
+    ],
+    "external_dependencies": [],
+    "fork": false,
+    "external": false
+  },
+  {
+    "name": "kv",
+    "path": "projects/kv",
+    "description": "A modern remote KVM",
+    "url": "https://github.com/ralsina/kv",
+    "loc": 3393,
+    "last_modified": "2025-11-18T13:59:39-03:00",
+    "dependencies": [
+      "kemal",
+      "v4cr",
+      "opus",
+      "baked_file_system",
+      "baked_file_handler",
+      "kemal-basic-auth",
+      "pluto",
+      "docopt"
+    ],
+    "external_dependencies": [],
+    "fork": false,
+    "external": false
+  },
+  {
+    "name": "grafito",
+    "path": "projects/grafito",
+    "description": "A simple, nice journald web frontend",
+    "url": "https://github.com/ralsina/grafito",
+    "loc": 2050,
+    "last_modified": "2025-11-17T12:51:43-03:00",
+    "dependencies": [
+      "baked_file_system",
+      "docopt",
+      "html_builder",
+      "kemal",
+      "kemal-basic-auth",
+      "baked_file_handler"
+    ],
+    "external_dependencies": [],
+    "fork": false,
+    "external": false
+  },
+  {
+    "name": "tocry",
+    "path": "projects/tocry",
+    "description": "A TODO app",
+    "url": "https://github.com/ralsina/tocry",
+    "loc": 9212,
+    "last_modified": "2025-11-05T14:03:24-03:00",
+    "dependencies": [
+      "baked_file_system",
+      "docopt",
+      "docopt-config",
+      "html_builder",
+      "kemal",
+      "kemal-basic-auth",
+      "baked_file_handler",
+      "multi_auth",
+      "kemal-session",
+      "sepia",
+      "crystar",
+      "crest",
+      "dotenv",
+      "mcp",
+      "rate_limiter"
+    ],
+    "external_dependencies": [],
+    "fork": false,
+    "external": false
+  },
+  {
+    "name": "tartrazine",
+    "path": "projects/tartrazine",
+    "description": "A Crystal reimplementation of the Pygments/Chroma syntax highlighters",
+    "url": "https://github.com/ralsina/tartrazine",
+    "loc": 2970,
+    "last_modified": "2025-11-05T12:28:38-03:00",
+    "dependencies": [
+      "baked_file_system",
+      "base58",
+      "sixteen",
+      "docopt",
+      "stumpy_utils",
+      "stumpy_png"
+    ],
+    "external_dependencies": [],
+    "fork": false,
+    "external": false
+  },
+  {
+    "name": "sepia",
+    "path": "projects/sepia",
+    "description": "A serializer focused on storing a tree of objects to disk in an intuitive way",
+    "url": "https://github.com/ralsina/sepia",
+    "loc": 5504,
+    "last_modified": "2025-11-04T14:22:59-03:00",
+    "dependencies": [
+      "fswatch"
+    ],
+    "external_dependencies": [],
+    "fork": false,
+    "external": false
+  },
+  {
+    "name": "docopt-config",
+    "path": "projects/docopt-config",
+    "description": "",
+    "url": "https://github.com/ralsina/docopt-config",
+    "loc": 378,
+    "last_modified": "2025-11-03T13:23:12-03:00",
+    "dependencies": [
+      "docopt"
+    ],
+    "external_dependencies": [],
+    "fork": false,
+    "external": false
+  },
+  {
+    "name": "rate_limiter",
+    "path": "projects/rate_limiter",
+    "description": "A simple, composable rate limiting library for Crystal applications",
+    "url": "https://github.com/ralsina/rate_limiter",
+    "loc": 587,
+    "last_modified": "2025-10-31T19:11:16-03:00",
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": false,
+    "external": false
+  },
+  {
+    "name": "mcp",
+    "path": "projects/mcp",
+    "description": "A crystal shard to create Model Context Protocol servers",
+    "url": "https://github.com/ralsina/mcp",
+    "loc": 11767,
+    "last_modified": "2025-10-31T09:01:54-03:00",
+    "dependencies": [
+      "kemal"
+    ],
+    "external_dependencies": [],
+    "fork": false,
+    "external": false
+  },
+  {
+    "name": "inotify.cr",
+    "path": "projects/inotify.cr",
+    "description": "Inotify bindings for Crystal",
+    "url": "https://github.com/ralsina/inotify.cr",
+    "loc": 531,
+    "last_modified": "2025-10-30T20:18:50-03:00",
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": true,
+    "external": false
+  },
+  {
+    "name": "baked_file_handler",
+    "path": "projects/baked_file_handler",
+    "description": "",
+    "url": "https://github.com/ralsina/baked_file_handler",
+    "loc": 83,
+    "last_modified": "2025-10-13T09:14:04-03:00",
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": false,
+    "external": false
+  },
+  {
+    "name": "crest",
+    "path": "projects/crest",
+    "description": "HTTP and REST client for Crystal",
+    "url": "https://github.com/ralsina/crest",
+    "loc": 3448,
+    "last_modified": "2025-08-15T14:30:39+01:00",
+    "dependencies": [
+      "http-client-digest_auth",
+      "http_proxy"
+    ],
+    "external_dependencies": [],
+    "fork": true,
+    "external": false
+  },
+  {
+    "name": "mangrullo",
+    "path": "projects/mangrullo",
+    "description": "Como un watchtower pero para gente pobre",
+    "url": "https://github.com/ralsina/mangrullo",
+    "loc": 5113,
+    "last_modified": "2025-09-16T07:52:59-03:00",
+    "dependencies": [
+      "baked_file_system",
+      "baked_file_handler",
+      "docr",
+      "docopt",
+      "kemal",
+      "progress"
+    ],
+    "external_dependencies": [],
+    "fork": false,
+    "external": false
+  },
+  {
+    "name": "markterm",
+    "path": "projects/markterm",
+    "description": "",
+    "url": "https://github.com/ralsina/markterm",
+    "loc": 687,
+    "last_modified": "2025-09-04T16:31:08-03:00",
+    "dependencies": [
+      "markd",
+      "docopt",
+      "tartrazine",
+      "sixteen"
+    ],
+    "external_dependencies": [],
+    "fork": false,
+    "external": false
+  },
+  {
+    "name": "markd",
+    "path": "projects/markd",
+    "description": "Yet another markdown parser, Compliant to CommonMark specification, written in Crystal.",
+    "url": "https://github.com/ralsina/markd",
+    "loc": 6929,
+    "last_modified": "2025-05-12T16:49:31-04:00",
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": true,
+    "external": false
+  },
+  {
+    "name": "v4cr",
+    "path": "projects/v4cr",
+    "description": "",
+    "url": "https://github.com/ralsina/v4cr",
+    "loc": 1446,
+    "last_modified": "2025-07-20T14:45:24-03:00",
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": false,
+    "external": false
+  },
+  {
+    "name": "opusenc-cr",
+    "path": "projects/opusenc-cr",
+    "description": "",
+    "url": "https://github.com/ralsina/opusenc-cr",
+    "loc": 233,
+    "last_modified": "2025-07-09T23:14:55-03:00",
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": false,
+    "external": false
+  },
+  {
+    "name": "sixteen",
+    "path": "projects/sixteen",
+    "description": "",
+    "url": "https://github.com/ralsina/sixteen",
+    "loc": 375,
+    "last_modified": "2025-06-16T11:33:51-03:00",
+    "dependencies": [
+      "baked_file_system"
+    ],
+    "external_dependencies": [],
+    "fork": false,
+    "external": false
+  },
+  {
+    "name": "crycco",
+    "path": "projects/crycco",
+    "description": "A Crystal implementation of Docco",
+    "url": "https://github.com/ralsina/crycco",
+    "loc": 433,
+    "last_modified": "2025-06-06T18:15:52-03:00",
+    "dependencies": [
+      "baked_file_system",
+      "crinja",
+      "docopt",
+      "enum_state_machine",
+      "markd",
+      "sixteen",
+      "tartrazine"
+    ],
+    "external_dependencies": [],
+    "fork": false,
+    "external": false
+  },
+  {
+    "name": "faaso",
+    "path": "projects/faaso",
+    "description": "Functions as a Server, Obviously",
+    "url": "https://github.com/ralsina/faaso",
+    "loc": 1564,
+    "last_modified": "2025-04-14T17:52:08-03:00",
+    "dependencies": [
+      "baked_file_system",
+      "base58",
+      "crest",
+      "crinja",
+      "crystar",
+      "docopt",
+      "docr",
+      "kemal",
+      "kemal-basic-auth",
+      "oplog",
+      "polydocopt",
+      "uname"
+    ],
+    "external_dependencies": [],
+    "fork": false,
+    "external": false
+  },
+  {
+    "name": "libctags.cr",
+    "path": "projects/libctags.cr",
+    "description": "A Crystal binding to read universal ctags",
+    "url": "https://github.com/ralsina/libctags.cr",
+    "loc": 258,
+    "last_modified": "2025-04-14T16:04:42-03:00",
+    "dependencies": [
+      "docopt"
+    ],
+    "external_dependencies": [],
+    "fork": false,
+    "external": false
+  },
+  {
+    "name": "jrsl",
+    "path": "projects/jrsl",
+    "description": "A markdown-based terminal presentation software",
+    "url": "https://github.com/ralsina/jrsl",
+    "loc": 102,
+    "last_modified": "2025-04-14T11:04:42-03:00",
+    "dependencies": [
+      "drawille-cr",
+      "tput",
+      "stumpy_jpeg",
+      "markterm"
+    ],
+    "external_dependencies": [],
+    "fork": false,
+    "external": false
+  },
+  {
+    "name": "hansa",
+    "path": "projects/hansa",
+    "description": "A wrapper around go-enry for programming language detection",
+    "url": "https://github.com/ralsina/hansa",
+    "loc": 177,
+    "last_modified": "2025-04-11T16:55:56-03:00",
+    "dependencies": [
+      "baked_file_system"
+    ],
+    "external_dependencies": [],
+    "fork": false,
+    "external": false
+  },
+  {
+    "name": "cr-discount",
+    "path": "projects/cr-discount",
+    "description": "A thin Crystal wrapper for discount, a markdown implementation",
+    "url": "https://github.com/ralsina/cr-discount",
+    "loc": 83,
+    "last_modified": "2024-08-26T22:26:56-03:00",
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": false,
+    "external": false
+  },
+  {
+    "name": "polydocopt",
+    "path": "projects/polydocopt",
+    "description": "A docopt-based approach to creating commands with subcommands",
+    "url": "https://github.com/ralsina/polydocopt",
+    "loc": 99,
+    "last_modified": "2024-11-11T13:18:32-03:00",
+    "dependencies": [
+      "docopt"
+    ],
+    "external_dependencies": [],
+    "fork": false,
+    "external": false
+  },
+  {
+    "name": "shortcodes",
+    "path": "projects/shortcodes",
+    "description": "A C and Crystal parser for Shortcodes",
+    "url": "https://github.com/ralsina/shortcodes",
+    "loc": 483,
+    "last_modified": "2024-10-08T16:55:17-03:00",
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": false,
+    "external": false
+  },
+  {
+    "name": "oplog",
+    "path": "projects/oplog",
+    "description": "Opinionated logging setup for Crystal",
+    "url": "https://github.com/ralsina/oplog",
+    "loc": 48,
+    "last_modified": "2024-10-07T12:17:25-03:00",
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": false,
+    "external": false
+  },
+  {
+    "name": "docr",
+    "path": "projects/docr",
+    "description": "Crystal library for Docker Engine API",
+    "url": "https://github.com/ralsina/docr",
+    "loc": 1928,
+    "last_modified": "2024-05-03T16:53:46+03:00",
+    "dependencies": [
+      "crystar"
+    ],
+    "external_dependencies": [],
+    "fork": true,
+    "external": false
+  },
+  {
+    "name": "lime",
+    "path": "projects/lime",
+    "description": "A library for drawing graphics on the console screen",
+    "url": "https://github.com/ralsina/lime",
+    "loc": 1316,
+    "last_modified": "2024-08-30T09:20:30-03:00",
+    "dependencies": [
+      "stumpy_png"
+    ],
+    "external_dependencies": [],
+    "fork": true,
+    "external": false
+  },
+  {
+    "name": "elkjs",
+    "path": "projects/elkjs",
+    "description": "Crystal wrapper for the elk js engine",
+    "url": "https://github.com/ralsina/elkjs",
+    "loc": 128,
+    "last_modified": "2024-08-26T22:29:19-03:00",
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": false,
+    "external": false
+  },
+  {
+    "name": "cr-wren",
+    "path": "projects/cr-wren",
+    "description": "A Crystal wrapper for the wren language",
+    "url": "https://github.com/ralsina/cr-wren",
+    "loc": 282,
+    "last_modified": "2024-08-26T22:27:00-03:00",
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": false,
+    "external": false
+  },
+  {
+    "name": "baked_file_system",
+    "path": "projects/baked_file_system",
+    "description": "Virtual File System for Crystal language. Embedding your assets into final binary.",
+    "url": "https://github.com/ralsina/baked_file_system",
+    "loc": 312,
+    "last_modified": "2024-08-26T11:05:11-03:00",
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": true,
+    "external": false
+  },
+  {
+    "name": "crystal-ctags",
+    "path": "projects/crystal-ctags",
+    "description": "Tool for generation ctags for Crystal",
+    "url": "https://github.com/ralsina/crystal-ctags",
+    "loc": 164,
+    "last_modified": "2024-08-01T10:21:57-03:00",
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": true,
+    "external": false
+  },
+  {
+    "name": "caddy-static",
+    "path": "projects/caddy-static",
+    "description": "",
+    "url": "https://github.com/ralsina/caddy-static",
+    "loc": 48,
+    "last_modified": "2024-07-11T14:33:20-03:00",
+    "dependencies": [
+      "inotify"
+    ],
+    "external_dependencies": [],
+    "fork": false,
+    "external": false
+  },
+  {
+    "name": "rss.cr",
+    "path": "projects/rss.cr",
+    "description": "RSS feed generator for Crystal",
+    "url": "https://github.com/ralsina/rss.cr",
+    "loc": 89,
+    "last_modified": "2023-07-18T17:07:40-03:00",
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": true,
+    "external": false
+  },
+  {
+    "name": "kiwi",
+    "path": "projects/kiwi",
+    "description": "A unified Crystal interface for key-value stores.",
+    "url": "https://github.com/ralsina/kiwi",
+    "loc": 322,
+    "last_modified": "2023-07-05T11:10:35-03:00",
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": true,
+    "external": false
+  },
+  {
+    "name": "docopt",
+    "path": "external",
+    "description": "External Crystal dependency",
+    "url": "https://github.com/ralsina/docopt.cr",
+    "loc": 0,
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": false,
+    "external": true
+  },
+  {
+    "name": "crinja",
+    "path": "external",
+    "description": "External Crystal dependency",
+    "url": "https://github.com/straight-shoota/crinja",
+    "loc": 0,
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": false,
+    "external": true
+  },
+  {
+    "name": "dotenv",
+    "path": "external",
+    "description": "External Crystal dependency",
+    "url": "https://github.com/gdotdesign/cr-dotenv",
+    "loc": 0,
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": false,
+    "external": true
+  },
+  {
+    "name": "crystalline",
+    "path": "external",
+    "description": "External Crystal dependency",
+    "url": "https://github.com/jtomschroeder/crystalline",
+    "loc": 0,
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": false,
+    "external": true
+  },
+  {
+    "name": "inotify",
+    "path": "external",
+    "description": "External Crystal dependency",
+    "url": "https://github.com/petoem/inotify.cr",
+    "loc": 0,
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": false,
+    "external": true
+  },
+  {
+    "name": "RSS",
+    "path": "external",
+    "description": "External Crystal dependency",
+    "url": "https://github.com/ralsina/RSS.cr",
+    "loc": 0,
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": false,
+    "external": true
+  },
+  {
+    "name": "live_reload",
+    "path": "external",
+    "description": "External Crystal dependency",
+    "url": "https://github.com/bcardiff/live_reload.cr",
+    "loc": 0,
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": false,
+    "external": true
+  },
+  {
+    "name": "lexbor",
+    "path": "external",
+    "description": "External Crystal dependency",
+    "url": "https://github.com/kostya/lexbor",
+    "loc": 0,
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": false,
+    "external": true
+  },
+  {
+    "name": "totem",
+    "path": "external",
+    "description": "External Crystal dependency",
+    "url": "https://github.com/icyleaf/totem",
+    "loc": 0,
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": false,
+    "external": true
+  },
+  {
+    "name": "cronic",
+    "path": "external",
+    "description": "External Crystal dependency",
+    "url": "https://github.com/nanobowers/cronic",
+    "loc": 0,
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": false,
+    "external": true
+  },
+  {
+    "name": "progress_bar",
+    "path": "external",
+    "description": "External Crystal dependency",
+    "url": "https://github.com/mgomes/progress_bar",
+    "loc": 0,
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": false,
+    "external": true
+  },
+  {
+    "name": "vips",
+    "path": "external",
+    "description": "External Crystal dependency",
+    "url": "https://github.com/naqvis/crystal-vips",
+    "loc": 0,
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": false,
+    "external": true
+  },
+  {
+    "name": "pluto",
+    "path": "external",
+    "description": "External Crystal dependency",
+    "url": "https://github.com/phenopolis/pluto",
+    "loc": 0,
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": false,
+    "external": true
+  },
+  {
+    "name": "stumpy_png",
+    "path": "external",
+    "description": "External Crystal dependency",
+    "url": "https://github.com/stumpycr/stumpy_png",
+    "loc": 0,
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": false,
+    "external": true
+  },
+  {
+    "name": "kemal",
+    "path": "external",
+    "description": "External Crystal dependency",
+    "url": "https://github.com/kemalcr/kemal",
+    "loc": 0,
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": false,
+    "external": true
+  },
+  {
+    "name": "opus",
+    "path": "external",
+    "description": "External Crystal dependency",
+    "url": "https://github.com/krthr/opus",
+    "loc": 0,
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": false,
+    "external": true
+  },
+  {
+    "name": "kemal-basic-auth",
+    "path": "external",
+    "description": "External Crystal dependency",
+    "url": "https://github.com/kemalcr/kemal-basic-auth",
+    "loc": 0,
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": false,
+    "external": true
+  },
+  {
+    "name": "html_builder",
+    "path": "external",
+    "description": "External Crystal dependency",
+    "url": "https://github.com/crystal-lang/html_builder",
+    "loc": 0,
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": false,
+    "external": true
+  },
+  {
+    "name": "multi_auth",
+    "path": "external",
+    "description": "External Crystal dependency",
+    "url": "https://github.com/msa7/multi_auth",
+    "loc": 0,
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": false,
+    "external": true
+  },
+  {
+    "name": "kemal-session",
+    "path": "external",
+    "description": "External Crystal dependency",
+    "url": "https://github.com/kemalcr/kemal-session",
+    "loc": 0,
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": false,
+    "external": true
+  },
+  {
+    "name": "crystar",
+    "path": "external",
+    "description": "External Crystal dependency",
+    "url": "https://github.com/naqvis/crystar",
+    "loc": 0,
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": false,
+    "external": true
+  },
+  {
+    "name": "base58",
+    "path": "external",
+    "description": "External Crystal dependency",
+    "url": "https://github.com/crystal-china/base58.cr",
+    "loc": 0,
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": false,
+    "external": true
+  },
+  {
+    "name": "stumpy_utils",
+    "path": "external",
+    "description": "External Crystal dependency",
+    "url": "https://github.com/stumpycr/stumpy_utils",
+    "loc": 0,
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": false,
+    "external": true
+  },
+  {
+    "name": "fswatch",
+    "path": "external",
+    "description": "External Crystal dependency",
+    "url": "https://github.com/bcardiff/crystal-fswatch",
+    "loc": 0,
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": false,
+    "external": true
+  },
+  {
+    "name": "http-client-digest_auth",
+    "path": "external",
+    "description": "External Crystal dependency",
+    "url": "https://github.com/mamantoha/http-client-digest_auth",
+    "loc": 0,
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": false,
+    "external": true
+  },
+  {
+    "name": "http_proxy",
+    "path": "external",
+    "description": "External Crystal dependency",
+    "url": "https://github.com/mamantoha/http_proxy",
+    "loc": 0,
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": false,
+    "external": true
+  },
+  {
+    "name": "progress",
+    "path": "external",
+    "description": "External Crystal dependency",
+    "url": "https://github.com/askn/progress",
+    "loc": 0,
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": false,
+    "external": true
+  },
+  {
+    "name": "enum_state_machine",
+    "path": "external",
+    "description": "External Crystal dependency",
+    "url": "https://github.com/nogginly/enum_state_machine.cr",
+    "loc": 0,
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": false,
+    "external": true
+  },
+  {
+    "name": "uname",
+    "path": "external",
+    "description": "External Crystal dependency",
+    "url": "https://github.com/djberg96/crystal-uname",
+    "loc": 0,
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": false,
+    "external": true
+  },
+  {
+    "name": "drawille-cr",
+    "path": "external",
+    "description": "External Crystal dependency",
+    "url": "https://github.com/joeyrobert/drawille-cr",
+    "loc": 0,
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": false,
+    "external": true
+  },
+  {
+    "name": "tput",
+    "path": "external",
+    "description": "External Crystal dependency",
+    "url": "https://github.com/crystallabs/tput.cr",
+    "loc": 0,
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": false,
+    "external": true
+  },
+  {
+    "name": "stumpy_jpeg",
+    "path": "external",
+    "description": "External Crystal dependency",
+    "url": "https://github.com/reiswindy/stumpy_jpeg",
+    "loc": 0,
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": false,
+    "external": true
+  }
+]
