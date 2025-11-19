@@ -7,6 +7,7 @@ struct Project
   include JSON::Serializable
 
   property name : String
+  property shard_name : String
   property path : String
   property description : String?
   property url : String
@@ -18,6 +19,10 @@ struct Project
   property external : Bool = false
 
   def initialize(@name : String, @path : String, @url : String)
+    @shard_name = @name
+  end
+
+  def initialize(@name : String, @shard_name : String, @path : String, @url : String)
   end
 end
 

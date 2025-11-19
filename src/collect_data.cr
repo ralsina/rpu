@@ -26,6 +26,7 @@ struct Project
   include JSON::Serializable
 
   property name : String
+  property shard_name : String
   property path : String
   property description : String?
   property url : String
@@ -37,6 +38,10 @@ struct Project
   property external : Bool = false
 
   def initialize(@name : String, @path : String, @url : String)
+    @shard_name = @name
+  end
+
+  def initialize(@name : String, @shard_name : String, @path : String, @url : String)
   end
 end
 
@@ -118,6 +123,30 @@ class ProjectDataCollector
         end
       end
     end
+  end
+
+  # Get shard name from shard.yml
+  def parse_shard_name(project_path) : String
+    # Special case for docopt.cr - hardcoded as "docopt"
+    if project_path.includes?("docopt.cr")
+      return "docopt"
+    end
+
+    shard_file = File.join(project_path, "shard.yml")
+
+    if File.exists?(shard_file)
+      begin
+        shard = YAML.parse(File.read(shard_file))
+        if shard["name"]?
+          return shard["name"].as_s
+        end
+      rescue ex
+        puts Colors.yellow("→ Warning: Failed to parse shard name from #{shard_file}: #{ex.message}")
+      end
+    end
+
+    # Fallback to directory name
+    File.basename(project_path)
   end
 
   # Parse shard.yml to get dependencies
@@ -236,6 +265,7 @@ class ProjectDataCollector
 
       project = Project.new(
         repo_name,
+        parse_shard_name(project_path),
         project_path,
         "https://github.com/#{repo}",
       )
@@ -264,9 +294,9 @@ class ProjectDataCollector
 
       project.dependencies.each do |dep|
         # Check if any of our projects match this dependency
-        matched = original_projects.find { |p| dep_matches(dep, p.name) }
+        matched = original_projects.find { |p| dep_matches(dep, p.shard_name) }
         if matched
-          internal_deps << matched.name
+          internal_deps << matched.shard_name
         else
           external_project_deps << dep
           # Extract URL from this project's shard.yml for this dependency
@@ -288,6 +318,7 @@ class ProjectDataCollector
     @external_deps_info.each do |dep_name, repo_url|
       external_project = Project.new(
         dep_name,
+        dep_name,  # For external dependencies, shard_name == dep_name
         "external",
         repo_url,
       )

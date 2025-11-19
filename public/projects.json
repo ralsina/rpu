@@ -1,6 +1,7 @@
 [
   {
     "name": "hace",
+    "shard_name": "hace",
     "path": "projects/hace",
     "description": "Hace is sort-of-make-like implemented using ralsina/croupier",
     "url": "https://github.com/ralsina/hace",
@@ -18,6 +19,7 @@
   },
   {
     "name": "docopt.cr",
+    "shard_name": "docopt",
     "path": "projects/docopt.cr",
     "description": "docopt for crystal-lang",
     "url": "https://github.com/ralsina/docopt.cr",
@@ -29,6 +31,7 @@
   },
   {
     "name": "croupier",
+    "shard_name": "croupier",
     "path": "projects/croupier",
     "description": "A library to create and execute tasks with dependencies",
     "url": "https://github.com/ralsina/croupier",
@@ -45,6 +48,7 @@
   },
   {
     "name": "nicolino",
+    "shard_name": "nicolino",
     "path": "projects/nicolino",
     "description": "A not-quite-minimalisting SSG written in Crystal",
     "url": "https://github.com/ralsina/nicolino",
@@ -75,6 +79,7 @@
   },
   {
     "name": "kv",
+    "shard_name": "kv",
     "path": "projects/kv",
     "description": "A modern remote KVM",
     "url": "https://github.com/ralsina/kv",
@@ -96,6 +101,7 @@
   },
   {
     "name": "grafito",
+    "shard_name": "grafito",
     "path": "projects/grafito",
     "description": "A simple, nice journald web frontend",
     "url": "https://github.com/ralsina/grafito",
@@ -115,6 +121,7 @@
   },
   {
     "name": "tocry",
+    "shard_name": "tocry",
     "path": "projects/tocry",
     "description": "A TODO app",
     "url": "https://github.com/ralsina/tocry",
@@ -143,6 +150,7 @@
   },
   {
     "name": "tartrazine",
+    "shard_name": "tartrazine",
     "path": "projects/tartrazine",
     "description": "A Crystal reimplementation of the Pygments/Chroma syntax highlighters",
     "url": "https://github.com/ralsina/tartrazine",
@@ -162,6 +170,7 @@
   },
   {
     "name": "sepia",
+    "shard_name": "sepia",
     "path": "projects/sepia",
     "description": "A serializer focused on storing a tree of objects to disk in an intuitive way",
     "url": "https://github.com/ralsina/sepia",
@@ -176,6 +185,7 @@
   },
   {
     "name": "docopt-config",
+    "shard_name": "docopt-config",
     "path": "projects/docopt-config",
     "description": "",
     "url": "https://github.com/ralsina/docopt-config",
@@ -190,6 +200,7 @@
   },
   {
     "name": "rate_limiter",
+    "shard_name": "rate_limiter",
     "path": "projects/rate_limiter",
     "description": "A simple, composable rate limiting library for Crystal applications",
     "url": "https://github.com/ralsina/rate_limiter",
@@ -202,6 +213,7 @@
   },
   {
     "name": "mcp",
+    "shard_name": "mcp",
     "path": "projects/mcp",
     "description": "A crystal shard to create Model Context Protocol servers",
     "url": "https://github.com/ralsina/mcp",
@@ -216,6 +228,7 @@
   },
   {
     "name": "inotify.cr",
+    "shard_name": "inotify",
     "path": "projects/inotify.cr",
     "description": "Inotify bindings for Crystal",
     "url": "https://github.com/ralsina/inotify.cr",
@@ -228,6 +241,7 @@
   },
   {
     "name": "baked_file_handler",
+    "shard_name": "baked_file_handler",
     "path": "projects/baked_file_handler",
     "description": "",
     "url": "https://github.com/ralsina/baked_file_handler",
@@ -240,6 +254,7 @@
   },
   {
     "name": "crest",
+    "shard_name": "crest",
     "path": "projects/crest",
     "description": "HTTP and REST client for Crystal",
     "url": "https://github.com/ralsina/crest",
@@ -255,6 +270,7 @@
   },
   {
     "name": "mangrullo",
+    "shard_name": "mangrullo",
     "path": "projects/mangrullo",
     "description": "Como un watchtower pero para gente pobre",
     "url": "https://github.com/ralsina/mangrullo",
@@ -274,6 +290,7 @@
   },
   {
     "name": "markterm",
+    "shard_name": "markterm",
     "path": "projects/markterm",
     "description": "",
     "url": "https://github.com/ralsina/markterm",
@@ -291,6 +308,7 @@
   },
   {
     "name": "markd",
+    "shard_name": "markd",
     "path": "projects/markd",
     "description": "Yet another markdown parser, Compliant to CommonMark specification, written in Crystal.",
     "url": "https://github.com/ralsina/markd",
@@ -303,6 +321,7 @@
   },
   {
     "name": "v4cr",
+    "shard_name": "v4cr",
     "path": "projects/v4cr",
     "description": "",
     "url": "https://github.com/ralsina/v4cr",
@@ -315,6 +334,7 @@
   },
   {
     "name": "opusenc-cr",
+    "shard_name": "opusenc-cr",
     "path": "projects/opusenc-cr",
     "description": "",
     "url": "https://github.com/ralsina/opusenc-cr",
@@ -327,6 +347,7 @@
   },
   {
     "name": "sixteen",
+    "shard_name": "sixteen",
     "path": "projects/sixteen",
     "description": "",
     "url": "https://github.com/ralsina/sixteen",
@@ -341,6 +362,7 @@
   },
   {
     "name": "crycco",
+    "shard_name": "crycco",
     "path": "projects/crycco",
     "description": "A Crystal implementation of Docco",
     "url": "https://github.com/ralsina/crycco",
@@ -361,6 +383,7 @@
   },
   {
     "name": "faaso",
+    "shard_name": "faaso",
     "path": "projects/faaso",
     "description": "Functions as a Server, Obviously",
     "url": "https://github.com/ralsina/faaso",
@@ -386,6 +409,7 @@
   },
   {
     "name": "libctags.cr",
+    "shard_name": "libctags",
     "path": "projects/libctags.cr",
     "description": "A Crystal binding to read universal ctags",
     "url": "https://github.com/ralsina/libctags.cr",
@@ -400,6 +424,7 @@
   },
   {
     "name": "jrsl",
+    "shard_name": "jrsl",
     "path": "projects/jrsl",
     "description": "A markdown-based terminal presentation software",
     "url": "https://github.com/ralsina/jrsl",
@@ -417,6 +442,7 @@
   },
   {
     "name": "hansa",
+    "shard_name": "hansa",
     "path": "projects/hansa",
     "description": "A wrapper around go-enry for programming language detection",
     "url": "https://github.com/ralsina/hansa",
@@ -431,6 +457,7 @@
   },
   {
     "name": "cr-discount",
+    "shard_name": "cr-discount",
     "path": "projects/cr-discount",
     "description": "A thin Crystal wrapper for discount, a markdown implementation",
     "url": "https://github.com/ralsina/cr-discount",
@@ -443,6 +470,7 @@
   },
   {
     "name": "polydocopt",
+    "shard_name": "polydocopt",
     "path": "projects/polydocopt",
     "description": "A docopt-based approach to creating commands with subcommands",
     "url": "https://github.com/ralsina/polydocopt",
@@ -457,6 +485,7 @@
   },
   {
     "name": "shortcodes",
+    "shard_name": "shortcodes",
     "path": "projects/shortcodes",
     "description": "A C and Crystal parser for Shortcodes",
     "url": "https://github.com/ralsina/shortcodes",
@@ -469,6 +498,7 @@
   },
   {
     "name": "oplog",
+    "shard_name": "oplog",
     "path": "projects/oplog",
     "description": "Opinionated logging setup for Crystal",
     "url": "https://github.com/ralsina/oplog",
@@ -481,6 +511,7 @@
   },
   {
     "name": "docr",
+    "shard_name": "docr",
     "path": "projects/docr",
     "description": "Crystal library for Docker Engine API",
     "url": "https://github.com/ralsina/docr",
@@ -495,6 +526,7 @@
   },
   {
     "name": "lime",
+    "shard_name": "lime",
     "path": "projects/lime",
     "description": "A library for drawing graphics on the console screen",
     "url": "https://github.com/ralsina/lime",
@@ -509,6 +541,7 @@
   },
   {
     "name": "elkjs",
+    "shard_name": "elkjs",
     "path": "projects/elkjs",
     "description": "Crystal wrapper for the elk js engine",
     "url": "https://github.com/ralsina/elkjs",
@@ -521,6 +554,7 @@
   },
   {
     "name": "cr-wren",
+    "shard_name": "cr-wren",
     "path": "projects/cr-wren",
     "description": "A Crystal wrapper for the wren language",
     "url": "https://github.com/ralsina/cr-wren",
@@ -533,6 +567,7 @@
   },
   {
     "name": "baked_file_system",
+    "shard_name": "baked_file_system",
     "path": "projects/baked_file_system",
     "description": "Virtual File System for Crystal language. Embedding your assets into final binary.",
     "url": "https://github.com/ralsina/baked_file_system",
@@ -545,6 +580,7 @@
   },
   {
     "name": "crystal-ctags",
+    "shard_name": "crystal_ctags",
     "path": "projects/crystal-ctags",
     "description": "Tool for generation ctags for Crystal",
     "url": "https://github.com/ralsina/crystal-ctags",
@@ -557,6 +593,7 @@
   },
   {
     "name": "caddy-static",
+    "shard_name": "caddywatch",
     "path": "projects/caddy-static",
     "description": "",
     "url": "https://github.com/ralsina/caddy-static",
@@ -571,6 +608,7 @@
   },
   {
     "name": "rss.cr",
+    "shard_name": "RSS",
     "path": "projects/rss.cr",
     "description": "RSS feed generator for Crystal",
     "url": "https://github.com/ralsina/rss.cr",
@@ -583,6 +621,7 @@
   },
   {
     "name": "kiwi",
+    "shard_name": "kiwi",
     "path": "projects/kiwi",
     "description": "A unified Crystal interface for key-value stores.",
     "url": "https://github.com/ralsina/kiwi",
@@ -594,18 +633,8 @@
     "external": false
   },
   {
-    "name": "docopt",
-    "path": "external",
-    "description": "External Crystal dependency",
-    "url": "https://github.com/ralsina/docopt.cr",
-    "loc": 0,
-    "dependencies": [],
-    "external_dependencies": [],
-    "fork": false,
-    "external": true
-  },
-  {
     "name": "crinja",
+    "shard_name": "crinja",
     "path": "external",
     "description": "External Crystal dependency",
     "url": "https://github.com/straight-shoota/crinja",
@@ -617,6 +646,7 @@
   },
   {
     "name": "dotenv",
+    "shard_name": "dotenv",
     "path": "external",
     "description": "External Crystal dependency",
     "url": "https://github.com/gdotdesign/cr-dotenv",
@@ -628,6 +658,7 @@
   },
   {
     "name": "crystalline",
+    "shard_name": "crystalline",
     "path": "external",
     "description": "External Crystal dependency",
     "url": "https://github.com/jtomschroeder/crystalline",
@@ -638,29 +669,8 @@
     "external": true
   },
   {
-    "name": "inotify",
-    "path": "external",
-    "description": "External Crystal dependency",
-    "url": "https://github.com/petoem/inotify.cr",
-    "loc": 0,
-    "dependencies": [],
-    "external_dependencies": [],
-    "fork": false,
-    "external": true
-  },
-  {
-    "name": "RSS",
-    "path": "external",
-    "description": "External Crystal dependency",
-    "url": "https://github.com/ralsina/RSS.cr",
-    "loc": 0,
-    "dependencies": [],
-    "external_dependencies": [],
-    "fork": false,
-    "external": true
-  },
-  {
     "name": "live_reload",
+    "shard_name": "live_reload",
     "path": "external",
     "description": "External Crystal dependency",
     "url": "https://github.com/bcardiff/live_reload.cr",
@@ -672,6 +682,7 @@
   },
   {
     "name": "lexbor",
+    "shard_name": "lexbor",
     "path": "external",
     "description": "External Crystal dependency",
     "url": "https://github.com/kostya/lexbor",
@@ -683,6 +694,7 @@
   },
   {
     "name": "totem",
+    "shard_name": "totem",
     "path": "external",
     "description": "External Crystal dependency",
     "url": "https://github.com/icyleaf/totem",
@@ -694,6 +706,7 @@
   },
   {
     "name": "cronic",
+    "shard_name": "cronic",
     "path": "external",
     "description": "External Crystal dependency",
     "url": "https://github.com/nanobowers/cronic",
@@ -705,6 +718,7 @@
   },
   {
     "name": "progress_bar",
+    "shard_name": "progress_bar",
     "path": "external",
     "description": "External Crystal dependency",
     "url": "https://github.com/mgomes/progress_bar",
@@ -716,6 +730,7 @@
   },
   {
     "name": "vips",
+    "shard_name": "vips",
     "path": "external",
     "description": "External Crystal dependency",
     "url": "https://github.com/naqvis/crystal-vips",
@@ -727,6 +742,7 @@
   },
   {
     "name": "pluto",
+    "shard_name": "pluto",
     "path": "external",
     "description": "External Crystal dependency",
     "url": "https://github.com/phenopolis/pluto",
@@ -738,6 +754,7 @@
   },
   {
     "name": "stumpy_png",
+    "shard_name": "stumpy_png",
     "path": "external",
     "description": "External Crystal dependency",
     "url": "https://github.com/stumpycr/stumpy_png",
@@ -749,6 +766,7 @@
   },
   {
     "name": "kemal",
+    "shard_name": "kemal",
     "path": "external",
     "description": "External Crystal dependency",
     "url": "https://github.com/kemalcr/kemal",
@@ -760,6 +778,7 @@
   },
   {
     "name": "opus",
+    "shard_name": "opus",
     "path": "external",
     "description": "External Crystal dependency",
     "url": "https://github.com/krthr/opus",
@@ -771,6 +790,7 @@
   },
   {
     "name": "kemal-basic-auth",
+    "shard_name": "kemal-basic-auth",
     "path": "external",
     "description": "External Crystal dependency",
     "url": "https://github.com/kemalcr/kemal-basic-auth",
@@ -782,6 +802,7 @@
   },
   {
     "name": "html_builder",
+    "shard_name": "html_builder",
     "path": "external",
     "description": "External Crystal dependency",
     "url": "https://github.com/crystal-lang/html_builder",
@@ -793,6 +814,7 @@
   },
   {
     "name": "multi_auth",
+    "shard_name": "multi_auth",
     "path": "external",
     "description": "External Crystal dependency",
     "url": "https://github.com/msa7/multi_auth",
@@ -804,6 +826,7 @@
   },
   {
     "name": "kemal-session",
+    "shard_name": "kemal-session",
     "path": "external",
     "description": "External Crystal dependency",
     "url": "https://github.com/kemalcr/kemal-session",
@@ -815,6 +838,7 @@
   },
   {
     "name": "crystar",
+    "shard_name": "crystar",
     "path": "external",
     "description": "External Crystal dependency",
     "url": "https://github.com/naqvis/crystar",
@@ -826,6 +850,7 @@
   },
   {
     "name": "base58",
+    "shard_name": "base58",
     "path": "external",
     "description": "External Crystal dependency",
     "url": "https://github.com/crystal-china/base58.cr",
@@ -837,6 +862,7 @@
   },
   {
     "name": "stumpy_utils",
+    "shard_name": "stumpy_utils",
     "path": "external",
     "description": "External Crystal dependency",
     "url": "https://github.com/stumpycr/stumpy_utils",
@@ -848,6 +874,7 @@
   },
   {
     "name": "fswatch",
+    "shard_name": "fswatch",
     "path": "external",
     "description": "External Crystal dependency",
     "url": "https://github.com/bcardiff/crystal-fswatch",
@@ -859,6 +886,7 @@
   },
   {
     "name": "http-client-digest_auth",
+    "shard_name": "http-client-digest_auth",
     "path": "external",
     "description": "External Crystal dependency",
     "url": "https://github.com/mamantoha/http-client-digest_auth",
@@ -870,6 +898,7 @@
   },
   {
     "name": "http_proxy",
+    "shard_name": "http_proxy",
     "path": "external",
     "description": "External Crystal dependency",
     "url": "https://github.com/mamantoha/http_proxy",
@@ -881,6 +910,7 @@
   },
   {
     "name": "progress",
+    "shard_name": "progress",
     "path": "external",
     "description": "External Crystal dependency",
     "url": "https://github.com/askn/progress",
@@ -892,6 +922,7 @@
   },
   {
     "name": "enum_state_machine",
+    "shard_name": "enum_state_machine",
     "path": "external",
     "description": "External Crystal dependency",
     "url": "https://github.com/nogginly/enum_state_machine.cr",
@@ -903,6 +934,7 @@
   },
   {
     "name": "uname",
+    "shard_name": "uname",
     "path": "external",
     "description": "External Crystal dependency",
     "url": "https://github.com/djberg96/crystal-uname",
@@ -914,6 +946,7 @@
   },
   {
     "name": "drawille-cr",
+    "shard_name": "drawille-cr",
     "path": "external",
     "description": "External Crystal dependency",
     "url": "https://github.com/joeyrobert/drawille-cr",
@@ -925,6 +958,7 @@
   },
   {
     "name": "tput",
+    "shard_name": "tput",
     "path": "external",
     "description": "External Crystal dependency",
     "url": "https://github.com/crystallabs/tput.cr",
@@ -936,6 +970,7 @@
   },
   {
     "name": "stumpy_jpeg",
+    "shard_name": "stumpy_jpeg",
     "path": "external",
     "description": "External Crystal dependency",
     "url": "https://github.com/reiswindy/stumpy_jpeg",
