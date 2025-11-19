@@ -1,4 +1,4 @@
-.PHONY: setup update serve clean test lint build
+.PHONY: setup update serve clean test lint build docker-build docker-run docker-compose-up docker-compose-down docker-clean
 
 # Default target
 all: setup
@@ -74,3 +74,40 @@ examples:
 	@echo "📄 Environment variables also work:"
 	@echo "  GITHUB_USER=myuser crystal src/collect_data.cr"
 	@echo "  MAX_DEPTH=2 crystal src/collect_data.cr"
+
+# Docker targets
+docker-build:
+	@echo "🐳 Building Docker image..."
+	docker build -t rpu:latest .
+
+docker-run:
+	@echo "🚀 Running Docker container..."
+	docker run --rm -it -p 3000:3000 \
+		-e GITHUB_USER=$(GITHUB_USER) \
+		-e MAX_DEPTH=$(MAX_DEPTH) \
+		-e MAX_PROJECTS=$(MAX_PROJECTS) \
+		-e RATE_LIMIT_DELAY=$(RATE_LIMIT_DELAY) \
+		-v $(PWD)/data:/app/public \
+		rpu:latest
+
+docker-compose-up:
+	@echo "🐳 Starting services with docker-compose..."
+	docker-compose up -d
+
+docker-compose-down:
+	@echo "🛑 Stopping services..."
+	docker-compose down
+
+docker-compose-logs:
+	@echo "📋 Showing logs..."
+	docker-compose logs -f
+
+docker-compose-collect:
+	@echo "📊 Running data collection..."
+	docker-compose run --rm rpu-collect
+
+docker-clean:
+	@echo "🧹 Cleaning Docker resources..."
+	docker rmi rpu:latest || true
+	docker-compose down --v --rmi all || true
+	docker system prune -f

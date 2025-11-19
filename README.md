@@ -12,7 +12,7 @@ This project creates a beautiful, interactive web visualization showing:
 
 ## Features
 
-- 📊 **Automatic data collection** - Scans GitHub for Crystal projects with `shard.yml`
+- 📊 **Automatic data collection** - Scans GitHub for Crystal projects with `shard.yml` using GitHub API
 - 📈 **Dependency graphing** - Shows internal project dependencies
 - 🎨 **Beautiful visualization** - Uses D3.js force-directed graph with pico.css styling
 - 🔄 **Live updates** - Re-run data collection to get latest project information
@@ -21,16 +21,51 @@ This project creates a beautiful, interactive web visualization showing:
 
 ## Requirements
 
+### Local Development
 - [Crystal](https://crystal-lang.org/) (>= 1.0)
 - [GitHub CLI](https://cli.github.com/) (gh) - for repository discovery
-- [tokei](https://github.com/XAMPPRocky/tokei) - for LOC counting
 - Git - for cloning repositories
+
+### Docker Deployment (Recommended)
+- [Docker](https://www.docker.com/) (>= 20.10)
+- [Docker Compose](https://docs.docker.com/compose/) (>= 2.0)
 
 ## Quick Start
 
+### 🐳 Docker Deployment (Recommended)
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/ralsina/rpu.git
+   cd rpu
+   ```
+
+2. **Configure environment (optional):**
+   ```bash
+   cp .env.example .env
+   # Edit .env with your settings
+   ```
+
+3. **Start with Docker Compose:**
+   ```bash
+   make docker-compose-up
+   # Or: docker-compose up -d
+   ```
+
+4. **Collect project data:**
+   ```bash
+   make docker-compose-collect
+   # Or: docker-compose run --rm rpu-collect
+   ```
+
+5. **Open your browser:**
+   Visit `http://localhost:3000` to see the visualization!
+
+### 💻 Local Development
+
 1. **Clone and setup:**
    ```bash
-   git clone <this-repo>
+   git clone https://github.com/ralsina/rpu.git
    cd rpu
    make setup
    ```
@@ -40,9 +75,8 @@ This project creates a beautiful, interactive web visualization showing:
    make update
    ```
    This will:
-   - Discover all Crystal repositories for your GitHub user
-   - Clone them locally
-   - Parse dependencies from `shard.yml`
+   - Discover all Crystal repositories for your GitHub user via API
+   - Parse dependencies from `shard.yml` files
    - Calculate LOC using tokei
    - Generate project data JSON
 
@@ -58,6 +92,16 @@ This project creates a beautiful, interactive web visualization showing:
 
 ### Commands
 
+#### Docker Commands
+- `make docker-build` - Build Docker image
+- `make docker-run` - Run Docker container
+- `make docker-compose-up` - Start services with Docker Compose
+- `make docker-compose-down` - Stop services
+- `make docker-compose-collect` - Run data collection
+- `make docker-compose-logs` - View logs
+- `make docker-clean` - Clean Docker resources
+
+#### Local Development Commands
 - `make setup` - Install Crystal dependencies
 - `make update` - Collect fresh project data
 - `make serve` - Start the web server
@@ -83,11 +127,34 @@ crystal run src/server.cr
 
 ### Configuration
 
-To change the GitHub user being analyzed, edit `src/collect_data.cr`:
+The application supports multiple configuration methods:
 
-```crystal
-GITHUB_USER = "your-username"
+#### Environment Variables (Docker)
+```bash
+GITHUB_USER=ralsina          # GitHub username to scan
+MAX_DEPTH=3                  # Maximum recursion depth for dependencies
+MAX_PROJECTS=500             # Maximum total projects to process
+RATE_LIMIT_DELAY=0.1         # Seconds to wait between API calls
+DATA_FILE=/app/public/projects.json  # Output JSON file path
+PORT=3000                    # Web server port
 ```
+
+#### Command Line Arguments (Local)
+```bash
+crystal run src/collect_data.cr -- --github-user=myuser --max-depth=2
+```
+
+#### Configuration Files
+Create `.rpu.yaml` in the project directory or `~/.rpu.yaml` globally:
+```yaml
+github_user: "ralsina"
+max_depth: 3
+max_projects: 500
+rate_limit_delay: 0.1
+data_file: "public/projects.json"
+```
+
+Configuration precedence: Command Line > Environment Variables > Config File > Defaults
 
 ## Visualization Features
 
@@ -101,7 +168,7 @@ GITHUB_USER = "your-username"
 
 ### Visual Encoding
 - **Node shape** - 🟢 Circles for original projects, 🔄 Hexagons for forked projects, 🔶 Triangles for external dependencies
-- **Node size** - Lines of Code for your projects (larger = more code), fixed size for external dependencies
+- **Node size** - Crystal code bytes for your projects (larger = more code), fixed size for external dependencies
 - **Node color** - Activity level for your projects (green = recent, red = old), light blue for external dependencies
   - 🟢 **Green** - Modified within last month (actively maintained)
   - 🟡 **Yellow-green** - Modified within 3 months (recently active)
@@ -142,9 +209,9 @@ rpu/
 
 ## Data Collection Process
 
-1. **Repository Discovery** - Uses GitHub CLI to find repos with `shard.yml`
-2. **Cloning** - Clones repositories to `projects/` directory
-3. **Dependency Parsing** - Extracts Crystal dependencies from `shard.yml`
+1. **Repository Discovery** - Uses GitHub API to find repos with `shard.yml`
+2. **API-based Access** - Retrieves repository and file contents via GitHub API (no cloning required)
+3. **Dependency Parsing** - Extracts Crystal dependencies from `shard.yml` files
 4. **Metrics Calculation** - Uses tokei for LOC, git for modification dates
 5. **Cross-referencing** - Maps internal dependencies between projects
 6. **JSON Generation** - Creates `public/projects.json` for visualization
@@ -186,7 +253,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - **Backend** - Crystal with Kemal web framework
 - **Frontend** - D3.js for visualization, pico.css for styling
-- **Data Collection** - GitHub CLI, tokei, Git
+- **Data Collection** - GitHub API, Git
 - **Build System** - Shards, Make
 
 ## Inspiration

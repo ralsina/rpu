@@ -3,8 +3,8 @@ bin/
 lib/
 
 # Generated data
-projects/
 all_repos.txt
+projects/
 
 # OS files
 .DS_Store

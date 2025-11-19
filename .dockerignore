@@ -1,0 +1,62 @@
+# Git
+.git
+.gitignore
+
+# Crystal build artifacts
+bin/
+lib/
+*.dwarf
+
+# Documentation
+README.md
+*.md
+
+# Logs and temporary files
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# Development files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Test files
+spec/
+*.spec
+
+# Cache
+.shards/
+.crystal/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Editor backup files
+*.bak
+*.backup
+
+# Docker files (exclude from Docker context to avoid recursion)
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# Local configuration files that shouldn't be in container
+.rpu.yaml
+.env
+*.env
+
+# Data that shouldn't be in container (use volumes instead)
+projects/
+all_repos.txt
+
+# Sample/testing data
+sample_*

@@ -229,6 +229,11 @@ class ProjectDataCollector
     github_api_request("repos/#{repo}")
   end
 
+  # Get language statistics from GitHub API
+  private def get_repo_languages(repo : String) : JSON::Any?
+    github_api_request("repos/#{repo}/languages")
+  end
+
   # Get Crystal repositories for the user
   def get_crystal_repos
     puts "#{Colors.blue("→")} Finding Crystal repositories for #{GITHUB_USER}..."
@@ -381,7 +386,10 @@ class ProjectDataCollector
     project.fork = repo_info["fork"].as_bool
     project.dependencies = dependencies
     project.last_modified = repo_info["pushed_at"]?.try { |t| Time.parse_rfc3339(t.as_s) }
-    project.loc = 0  # Skip LOC calculation for API-based approach
+
+    # Get Crystal LOC from GitHub API language statistics
+    languages = get_repo_languages(repo)
+    project.loc = languages.try(&.["Crystal"]?.try(&.as_i)) || repo_info["size"].as_i
 
     @projects << project
 

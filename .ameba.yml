@@ -1,0 +1,44 @@
+# Ameba configuration for Crystal Projects Visualization
+
+# Exclude directories and files from linting
+exclude:
+  - "projects/**"
+  - "lib/**"
+  - "bin/**"
+  - "*.dwarf"
+  - ".git/**"
+  - ".shards/**"
+  - ".crystal/**"
+
+# Rule configurations
+Naming/QueryBoolMethods:
+  Enabled: false
+
+Naming/BlockParameterName:
+  Enabled: true
+  AllowedNames:
+    - p
+    - project
+    - t
+    - time
+    - dep
+    - dependency
+
+Metrics/CyclomaticComplexity:
+  Enabled: true
+  MaxComplexity: 25
+
+Layout/TrailingBlankLines:
+  Enabled: true
+
+Layout/TrailingWhitespace:
+  Enabled: true
+
+Documentation/DocumentationAdmonition:
+  Enabled: true
+
+Lint/Formatting:
+  Enabled: true
+
+Lint/UselessAssign:
+  Enabled: true
