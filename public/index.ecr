@@ -331,7 +331,38 @@
                 .attr('stroke-opacity', d => d.type === 'external' ? 0.8 : 0.6)
                 .attr('stroke-width', d => d.type === 'external' ? 1.5 : 2)
                 .attr('stroke-dasharray', d => d.type === 'external' ? '5,5' : '0')  // Dashed for external
-                // .attr('marker-end', d => d.type === 'external' ? 'url(#arrowhead-external)' : 'url(#arrowhead)');
+                            .attr('marker-end', d => d.type === 'external' ? 'url(#arrowhead-external)' : 'url(#arrowhead)');
+
+            // Add arrow markers for dependency links
+            const defs = svg.append('defs');
+
+            // Internal dependency arrow marker (gray, smaller)
+            defs.append('marker')
+                .attr('id', 'arrowhead')
+                .attr('viewBox', '0 0 10 10')
+                .attr('refX', 15)
+                .attr('refY', 3)
+                .attr('markerWidth', 6)
+                .attr('markerHeight', 6)
+                .attr('orient', 'auto')
+                .append('path')
+                .attr('d', 'M0,0 L0,6 L9,3 z')
+                .attr('fill', '#999')
+                .attr('opacity', 0.6);
+
+            // External dependency arrow marker (blue, smaller)
+            defs.append('marker')
+                .attr('id', 'arrowhead-external')
+                .attr('viewBox', '0 0 10 10')
+                .attr('refX', 15)
+                .attr('refY', 3)
+                .attr('markerWidth', 6)
+                .attr('markerHeight', 6)
+                .attr('orient', 'auto')
+                .append('path')
+                .attr('d', 'M0,0 L0,6 L9,3 z')
+                .attr('fill', '#2196f3')
+                .attr('opacity', 0.6);
 
             // Helper function to create hexagon points
             function createHexagonPoints(radius) {
