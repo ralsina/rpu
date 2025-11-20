@@ -15,7 +15,7 @@ DOC = <<-DOCOPT
 Crystal Projects Visualization Data Collection
 
 Usage:
-  #{File.basename(PROGRAM_NAME)} [--github-user=<user>] [--max-depth=<depth>] [--max-projects=<count>] [--rate-limit=<delay>] [--data-file=<file>] [--help]
+  #{File.basename(PROGRAM_NAME)} [--github-user=<user>] [--max-depth=<depth>] [--max-projects=<count>] [--rate-limit=<delay>] [--data-file=<file>] [--generate-html] [--help]
   #{File.basename(PROGRAM_NAME)} -h | --help
 
 Options:
@@ -24,6 +24,7 @@ Options:
   --max-projects=<count>    Maximum total projects to process [default: 500]
   --rate-limit=<delay>      Seconds to wait between API calls [default: 0.1]
   --data-file=<file>        Output JSON file path [default: public/projects.json]
+  --generate-html           Generate complete static HTML site with templates
   -h, --help               Show this help message
 
 Environment Variables:
@@ -121,16 +122,18 @@ def get_config
     "data-file" => get_string_value(args["--data-file"]) ||
                    ENV["DATA_FILE"]? ||
                    (config_file.try(&.["data-file"]?).try(&.as_s) if config_file) ||
-                   "public/projects.json"
+                   "public/projects.json",
+    "generate-html" => args["--generate-html"] == true
   }
 end
 
 CONFIG = get_config
 DATA_FILE = CONFIG["data-file"].to_s
-MAX_DEPTH = CONFIG["max-depth"].to_i
-MAX_PROJECTS = CONFIG["max-projects"].to_i
-RATE_LIMIT_DELAY = CONFIG["rate-limit"].to_f
-GITHUB_USER = CONFIG["github-user"].to_s
+MAX_DEPTH = get_int_value(CONFIG["max-depth"]) || 3
+MAX_PROJECTS = get_int_value(CONFIG["max-projects"]) || 500
+RATE_LIMIT_DELAY = get_float_value(CONFIG["rate-limit"]) || 0.1
+GITHUB_USER = get_string_value(CONFIG["github-user"]) || "ralsina"
+GENERATE_HTML = CONFIG["generate-html"] == true
 
 # ANSI colors for output
 module Colors
@@ -530,6 +533,31 @@ class ProjectDataCollector
   end
 
   
+  # Generate complete static HTML site from templates
+  def generate_html
+    puts "#{Colors.blue("→")} Generating complete static HTML site..."
+
+    FileUtils.mkdir_p("public") unless Dir.exists?("public")
+
+    # Copy template files if they exist
+    template_files = {
+      "public/index.html" => "public/index.html",
+      "public/style.css" => "public/style.css",
+      "public/visualization.js" => "public/visualization.js"
+    }
+
+    template_files.each do |source, dest|
+      if File.exists?(source)
+        FileUtils.cp(source, dest)
+        puts Colors.green("✓ Copied #{source}")
+      else
+        puts Colors.yellow("⚠ Template file #{source} not found, skipping...")
+      end
+    end
+
+    puts Colors.green("✓ Generated static HTML site")
+  end
+
   # Generate project data JSON
   def generate_json
     puts "#{Colors.blue("→")} Generating project data..."
@@ -549,6 +577,7 @@ class ProjectDataCollector
     puts "   • Max projects: #{MAX_PROJECTS}"
     puts "   • Rate limit delay: #{RATE_LIMIT_DELAY}s"
     puts "   • Output file: #{DATA_FILE}"
+    puts "   • Generate HTML: #{GENERATE_HTML ? "Yes" : "No"}"
 
     repos = get_crystal_repos
     puts Colors.green("✓ Found #{repos.size} Crystal repositories")
@@ -560,8 +589,16 @@ class ProjectDataCollector
 
     generate_json
 
+    # Generate HTML if requested
+    if GENERATE_HTML
+      generate_html
+      puts "#{Colors.blue("→")} Static HTML site ready in public/ directory"
+      puts "#{Colors.blue("→")} Open public/index.html in your browser to view the visualization"
+    else
+      puts "#{Colors.blue("→")} Run with --generate-html to create a complete static site"
+    end
+
     puts Colors.green("🎉 Data collection complete!")
-    puts "#{Colors.blue("→")} Run 'shards install' && 'crystal src/server.cr' to start the visualization"
     puts "#{Colors.blue("→")} The graph shows dependencies across #{MAX_DEPTH} levels of recursion"
   end
 end

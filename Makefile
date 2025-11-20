@@ -1,4 +1,4 @@
-.PHONY: setup build test lint clean examples
+.PHONY: setup build test lint clean examples build-static serve
 
 # Default target
 all: setup
@@ -38,6 +38,17 @@ collect:
 	@echo "📊 Collecting project data locally..."
 	crystal run src/collect_data.cr -- $(ARGS)
 
+# Build complete static HTML site
+build-static:
+	@echo "🏗️ Building complete static HTML site..."
+	@crystal run src/collect_data.cr -- --generate-html $(ARGS)
+
+# Serve static site locally for development
+serve:
+	@echo "🌐 Serving static site locally..."
+	@echo "📱 Open http://localhost:8000 to view the visualization"
+	@cd public && python3 -m http.server 8000 2>/dev/null || python -m SimpleHTTPServer 8000 2>/dev/null || echo "❌ Python not available. Install Python or use another web server to serve public/ directory"
+
 # Show usage examples
 examples:
 	@echo "📚 Local development examples:"
@@ -45,6 +56,9 @@ examples:
 	@echo "  make collect ARGS='--github-user=myuser'       # Custom user"
 	@echo "  make collect ARGS='--max-depth=2'              # Shallow scan"
 	@echo "  make collect ARGS='--max-projects=50'          # Fewer projects"
+	@echo "  make build-static                               # Build complete static site"
+	@echo "  make build-static ARGS='--github-user=myuser'  # Build for different user"
+	@echo "  make serve                                      # Serve static site locally"
 	@echo ""
 	@echo "🌐 For production deployment:"
 	@echo "  Fork this repository and enable GitHub Pages"

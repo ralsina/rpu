@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crystal Projects Visualization</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Crystal Projects Visualization</h1>
+            <p>Interactive dependency graph of Crystal ecosystem projects</p>
+        </div>
+
+        <div class="stats" id="stats">
+            <div class="stat">
+                <div class="stat-value" id="project-count">0</div>
+                <div class="stat-label">Projects</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="loc-count">0</div>
+                <div class="stat-label">Lines of Code</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="dep-count">0</div>
+                <div class="stat-label">Dependencies</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button onclick="toggleLabels()">Toggle Labels</button>
+            <button onclick="resetZoom()">Reset Zoom</button>
+            <button onclick="toggleExternalDeps()">Toggle External</button>
+        </div>
+
+        <div class="visualization">
+            <div id="graph"></div>
+        </div>
+
+        <div class="last-updated" id="last-updated"></div>
+    </div>
+
+    <div class="tooltip" id="tooltip" style="opacity: 0;"></div>
+
+    <script src="visualization.js"></script>
+</body>
+</html>
