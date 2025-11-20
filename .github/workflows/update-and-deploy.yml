@@ -254,14 +254,23 @@ jobs:
                         .attr('class', 'link')
                         .attr('stroke-dasharray', d => d.source.external || d.target.external ? '5,5' : null);
 
-                    // Create nodes
+                    // Create nodes with different shapes
                     node = g.append('g')
-                        .selectAll('circle')
+                        .selectAll('.node')
                         .data(nodes)
-                        .enter().append('circle')
+                        .enter().append(d => {
+                            if (d.external) {
+                                // Create triangle for external dependencies
+                                return document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+                            } else {
+                                // Create circle for regular projects and forks
+                                return document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                            }
+                        })
                         .attr('class', d => d.fork ? 'node fork' : d.external ? 'node external' : 'node')
-                        .attr('r', d => d.external ? 8 : Math.sqrt(Math.max(d.loc || 100, 100)) / 2)
                         .attr('fill', d => getNodeColor(d))
+                        .attr('stroke', '#fff')
+                        .attr('stroke-width', '2px')
                         .on('click', (event, d) => {
                             if (d.url && !d.url.startsWith('data:')) {
                                 window.open(d.url, '_blank');
@@ -269,6 +278,27 @@ jobs:
                         })
                         .on('mouseover', showTooltip)
                         .on('mouseout', hideTooltip);
+
+                    // Set shape-specific attributes
+                    node.each(function(d) {
+                        const node = d3.select(this);
+                        if (d.external) {
+                            // Triangle for external dependencies
+                            const size = 8;
+                            const points = `0,${-size} ${-size},${size} ${size},${size}`;
+                            node.attr('points', points)
+                                .attr('stroke', '#4682b4')
+                                .attr('stroke-width', '2px');
+                        } else {
+                            // Circle for regular projects and forks
+                            const radius = Math.sqrt(Math.max(d.loc || 100, 100)) / 2;
+                            node.attr('r', radius);
+                            if (d.fork) {
+                                node.attr('stroke', '#ff6b35')
+                                    .attr('stroke-width', '3px');
+                            }
+                        }
+                    });
 
                     // Create labels
                     label = g.append('g')
@@ -375,9 +405,7 @@ jobs:
                         .attr('x2', d => d.target.x)
                         .attr('y2', d => d.target.y);
 
-                    node
-                        .attr('cx', d => d.x)
-                        .attr('cy', d => d.y);
+                    node.attr('transform', d => `translate(${d.x},${d.y})`);
 
                     label
                         .attr('x', d => d.x)
