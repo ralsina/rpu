@@ -28,6 +28,7 @@ Options:
 
 Environment Variables:
   GITHUB_USER              Same as --github-user
+  GITHUB_TOKEN             GitHub personal access token for higher API limits (5000/hr vs 60/hr)
   MAX_DEPTH               Same as --max-depth
   MAX_PROJECTS            Same as --max-projects
   RATE_LIMIT_DELAY        Same as --rate-limit
@@ -179,34 +180,67 @@ class ProjectDataCollector
     @processed_count = 0
   end
 
-  # Make a GitHub API request with rate limiting
+  # Make a GitHub API request with intelligent rate limiting
   private def github_api_request(endpoint : String, retry_count : Int32 = 0) : JSON::Any?
-    sleep(RATE_LIMIT_DELAY.seconds) # Rate limiting
-
     url = "https://api.github.com/#{endpoint}"
 
     begin
-      HTTP::Client.get(url) do |response|
+      headers = HTTP::Headers.new
+      if ENV["GITHUB_TOKEN"]?
+        headers["Authorization"] = "token #{ENV["GITHUB_TOKEN"]}"
+      end
+
+      HTTP::Client.get(url, headers: headers) do |response|
+        # Check rate limit headers
+        if response.headers["X-RateLimit-Remaining"]?
+          remaining = response.headers["X-RateLimit-Remaining"].to_i
+          if remaining < 10
+            reset_time = response.headers["X-RateLimit-Reset"].to_i
+            wait_time = Math.max(reset_time - Time.utc.to_unix, 60)
+            puts Colors.yellow("→ Low API credits (#{remaining} left), waiting #{wait_time}s...")
+            sleep(wait_time.seconds)
+          end
+        end
+
         if response.success?
+          # Dynamic delay based on remaining API credits
+          if response.headers["X-RateLimit-Remaining"]?
+            remaining = response.headers["X-RateLimit-Remaining"].to_i
+            if remaining < 100
+              sleep((RATE_LIMIT_DELAY * 3).seconds)  # Slower when running low
+            else
+              sleep(RATE_LIMIT_DELAY.seconds)  # Normal rate
+            end
+          end
           JSON.parse(response.body_io)
         elsif response.status_code == 403
-          if retry_count < 3
-            puts Colors.yellow("→ Rate limit hit for #{endpoint}, waiting... (retry #{retry_count + 1}/3)")
-            sleep(60.seconds)
-            github_api_request(endpoint, retry_count + 1)
+          # Parse rate limit info from error response
+          if response.headers["X-RateLimit-Remaining"]? && response.headers["X-RateLimit-Remaining"] == "0"
+            reset_time = response.headers["X-RateLimit-Reset"].to_i
+            wait_time = Math.max(reset_time - Time.utc.to_unix, 60)
+            if retry_count < 5  # Increased retry count
+              puts Colors.red("→ API exhausted, waiting #{wait_time}s... (retry #{retry_count + 1}/5)")
+              sleep(wait_time.seconds)
+              github_api_request(endpoint, retry_count + 1)
+            else
+              puts Colors.red("→ Max retries exceeded for #{endpoint}, skipping...")
+              nil
+            end
           else
-            puts Colors.red("→ Max retries exceeded for #{endpoint}, skipping...")
+            puts Colors.yellow("→ 403 Forbidden for #{endpoint}, skipping...")
             nil
           end
         elsif response.status_code == 404
           nil # Not found
         else
           puts Colors.yellow("→ API request failed for #{endpoint}: #{response.status_code}")
+          sleep(RATE_LIMIT_DELAY.seconds)  # Brief pause on other errors
           nil
         end
       end
     rescue ex
       puts Colors.yellow("→ API request error for #{endpoint}: #{ex.message}")
+      sleep(RATE_LIMIT_DELAY.seconds)
       nil
     end
   end
