@@ -1,317 +1,193 @@
 # Crystal Projects Visualization (RPU)
 
-🔮 An interactive visualization tool for exploring Crystal project dependencies and metrics.
+🔮 **Fork and Deploy Your Own Crystal Project Visualization in Minutes**
 
-## Overview
+A Crystal tool that creates beautiful, interactive visualizations of Crystal project dependencies and automatically deploys them to GitHub Pages.
 
-This project creates a beautiful, interactive web visualization showing:
-- **Project nodes** sized by Lines of Code (LOC)
-- **Colors** representing recency of modifications (warmer = more recent)
-- **Dependency connections** showing which projects use which
-- **Interactive features** like zoom, tooltips, and clickable nodes
+## ✨ **What It Does**
 
-## Features
+- **Discovers Projects**: Automatically finds all Crystal repositories with `shard.yml` using GitHub API
+- **Analyzes Dependencies**: Maps internal and external Crystal dependencies across your projects
+- **Creates Visualizations**: Generates interactive D3.js force-directed graphs showing project relationships
+- **Auto-Deploys**: Builds and deploys a static site to GitHub Pages automatically
+- **Updates Daily**: Fresh data every day with zero maintenance
 
-- 📊 **Automatic data collection** - Scans GitHub for Crystal projects with `shard.yml` using GitHub API
-- 📈 **Dependency graphing** - Shows internal project dependencies
-- 🎨 **Beautiful visualization** - Uses D3.js force-directed graph with pico.css styling
-- 🔄 **Live updates** - Re-run data collection to get latest project information
-- 📱 **Responsive design** - Works on desktop and mobile devices
-- ⚡ **Fast** - Built with Crystal for performance
+## 🚀 **Quick Start - Fork and Deploy**
 
-## Requirements
+### 1. Fork This Repository
+Click the "Fork" button at the top of this page to create your own copy.
 
-### Local Development
-- [Crystal](https://crystal-lang.org/) (>= 1.0)
-- [GitHub CLI](https://cli.github.com/) (gh) - for repository discovery
-- Git - for cloning repositories
+### 2. Enable GitHub Pages
+1. Go to your forked repository's **Settings**
+2. Navigate to **Pages**
+3. Under "Build and deployment", select **GitHub Actions** as the source
+4. **Save**
 
-### Docker Deployment (Recommended)
-- [Docker](https://www.docker.com/) (>= 20.10)
-- [Docker Compose](https://docs.docker.com/compose/) (>= 2.0)
+### 3. Wait for Initial Build
+The GitHub Actions workflow will automatically:
+- Detect your GitHub username
+- Collect your Crystal project data
+- Build a static visualization
+- Deploy to GitHub Pages
 
-## Quick Start
+That's it! Your visualization will be live at `https://<your-username>.github.io/rpu/`
 
-### 🐳 Docker Deployment (Recommended)
+## 🌟 **Features**
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/ralsina/rpu.git
-   cd rpu
-   ```
-
-2. **Configure environment (optional):**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your settings
-   ```
-
-3. **Start with Docker Compose:**
-   ```bash
-   make docker-compose-up
-   # Or: docker-compose up -d
-   ```
-
-4. **Collect project data:**
-   ```bash
-   make docker-compose-collect
-   # Or: docker-compose run --rm rpu-collect
-   ```
-
-5. **Open your browser:**
-   Visit `http://localhost:3000` to see the visualization!
-
-### 💻 Local Development
-
-1. **Clone and setup:**
-   ```bash
-   git clone https://github.com/ralsina/rpu.git
-   cd rpu
-   make setup
-   ```
-
-2. **Collect project data:**
-   ```bash
-   make update
-   ```
-   This will:
-   - Discover all Crystal repositories for your GitHub user via API
-   - Parse dependencies from `shard.yml` files
-   - Calculate LOC using tokei
-   - Generate project data JSON
-
-3. **Start the visualization:**
-   ```bash
-   make serve
-   ```
-
-4. **Open your browser:**
-   Visit `http://localhost:3000` to see the visualization!
-
-## Usage
-
-### Commands
-
-#### Docker Commands
-- `make docker-build` - Build Docker image
-- `make docker-run` - Run Docker container
-- `make docker-compose-up` - Start services with Docker Compose
-- `make docker-compose-down` - Stop services
-- `make docker-compose-collect` - Run data collection
-- `make docker-compose-logs` - View logs
-- `make docker-clean` - Clean Docker resources
-
-#### Local Development Commands
-- `make setup` - Install Crystal dependencies
-- `make update` - Collect fresh project data
-- `make serve` - Start the web server
-- `make run` - Full workflow: setup + update + serve
-- `make dev` - Development mode (updates data then starts server)
-- `make build` - Build binaries
-- `make test` - Run tests
-- `make lint` - Run linter with auto-fix
-- `make clean` - Clean up generated files
-
-### Manual Usage
-
-```bash
-# Install dependencies
-shards install
-
-# Collect data
-crystal run src/collect_data.cr
-
-# Start server
-crystal run src/server.cr
-```
-
-### Configuration
-
-The application supports multiple configuration methods:
-
-#### Environment Variables (Docker)
-```bash
-GITHUB_USER=ralsina          # GitHub username to scan
-MAX_DEPTH=3                  # Maximum recursion depth for dependencies
-MAX_PROJECTS=500             # Maximum total projects to process
-RATE_LIMIT_DELAY=0.1         # Seconds to wait between API calls
-DATA_FILE=/app/public/projects.json  # Output JSON file path
-PORT=3000                    # Web server port
-```
-
-#### Command Line Arguments (Local)
-```bash
-crystal run src/collect_data.cr -- --github-user=myuser --max-depth=2
-```
-
-#### Configuration Files
-Create `.rpu.yaml` in the project directory or `~/.rpu.yaml` globally:
-```yaml
-github_user: "ralsina"
-max_depth: 3
-max_projects: 500
-rate_limit_delay: 0.1
-data_file: "public/projects.json"
-```
-
-Configuration precedence: Command Line > Environment Variables > Config File > Defaults
-
-## Visualization Features
-
-### Interactive Elements
-- **Click nodes** - Opens project repository in new tab
-- **Hover** - Shows project details (LOC, description, activity status, fork status)
+### **Interactive Visualization**
+- **Click nodes** - Opens project repositories in new tabs
+- **Hover tooltips** - Shows LOC, description, fork status, last modified date
 - **Zoom/Pan** - Mouse wheel and drag navigation
 - **Toggle labels** - Show/hide project names
-- **Reset zoom** - Return to default view
-- **Improved layout** - Better positioning of disconnected nodes with optimized force simulation
+- **Toggle external** - Show/hide third-party dependencies
 
-### Visual Encoding
-- **Node shape** - 🟢 Circles for original projects, 🔄 Hexagons for forked projects, 🔶 Triangles for external dependencies
-- **Node size** - Crystal code bytes for your projects (larger = more code), fixed size for external dependencies
-- **Node color** - Activity level for your projects (green = recent, red = old), light blue for external dependencies
-  - 🟢 **Green** - Modified within last month (actively maintained)
-  - 🟡 **Yellow-green** - Modified within 3 months (recently active)
-  - 🟠 **Orange** - Modified within 6 months (moderately active)
-  - 🔶 **Dark orange** - Modified within 1 year (inactive)
-  - 🔴 **Red** - Modified over 1 year ago (stale)
-- **Node border** - Orange for forks, black for original projects, blue for external dependencies
-- **Arrows** - Dependency direction (A → B means A uses B)
-  - Solid lines = internal dependencies between your projects
-  - Dashed lines = external dependencies to third-party libraries
-- **Statistics** - Total projects, LOC, and dependencies
+### **Visual Encoding**
+- **Node size** - Lines of Crystal code (larger = more code)
+- **Node color** - Activity level:
+  - 🟢 Green: Modified within last month (actively maintained)
+  - 🟡 Yellow-green: Modified within 3 months (recently active)
+  - 🟠 Orange: Modified within 6 months (moderately active)
+  - 🔶 Dark orange: Modified within 1 year (inactive)
+  - 🔴 Red: Modified over 1 year ago (stale)
+- **Node shapes**:
+  - 🟢 Circles: Your original projects
+  - 🔄 Orange border: Forked projects
+  - 🔵 Triangles: External Crystal dependencies
+- **Lines**:
+  - Solid: Internal dependencies between your projects
+  - Dashed: External dependencies to third-party libraries
 
-### Dependency Types
-- **Internal dependencies** - Links between your own projects
-- **External dependencies** - Links to third-party Crystal shards
-- **Fork Detection** - Automatically identifies forked repositories via GitHub API
+### **Smart Data Collection**
+- **GitHub API Integration**: Uses GitHub's native APIs for accurate data
+- **Rate Limit Handling**: Intelligent API rate limiting with automatic retries
+- **Dependency Scanning**: Recursive dependency analysis up to 3 levels deep
+- **External Dependencies**: Automatically discovers and maps Crystal shard dependencies
 
-### External Dependency Detection
-- Automatically discovers all Crystal dependencies from shard.yml files
-- Separates internal dependencies (your projects) from external dependencies (third-party shards)
-- External dependencies are shown as triangles with blue styling
-- Creates a complete dependency ecosystem view
+## ⚙️ **How It Works**
 
-## Project Structure
+### **GitHub Actions Workflow**
+The `.github/workflows/update-and-deploy.yml` file automatically:
+
+1. **Triggers**:
+   - Daily at 2 AM UTC (8 PM EST, 5 PM PST)
+   - Manual trigger from Actions tab
+   - On code changes
+
+2. **Data Collection**:
+   - Uses repository's GitHub token (5000 requests/hour rate limit)
+   - Scans up to 500 projects with 3 levels of dependency depth
+   - Intelligent rate limiting to avoid API exhaustion
+
+3. **Static Site Generation**:
+   - Creates responsive HTML with D3.js visualization
+   - Mobile-friendly design
+   - Performance optimized
+
+4. **Deployment**:
+   - Automatic deployment to GitHub Pages
+   - Zero hosting cost
+   - Custom domain support
+
+### **Configuration**
+The workflow automatically adapts to your repository:
+- **GitHub User**: Detected from repository owner
+- **Rate Limits**: Uses GitHub Actions token for 5000 requests/hour
+- **Scope**: Scans your public Crystal repositories
+- **Depth**: 3 levels of dependency recursion
+- **Projects**: Up to 500 projects total
+
+## 🛠️ **Customization**
+
+### **Local Development**
+For testing or customizing the data collection:
+
+```bash
+# Clone your fork
+git clone https://github.com/<your-username>/rpu.git
+cd rpu
+
+# Install dependencies
+make setup
+
+# Test data collection locally
+make collect ARGS='--github-user=<your-username>'
+
+# Build binary
+make build
+```
+
+### **Environment Variables**
+Override defaults by setting environment variables:
+
+```bash
+GITHUB_USER=<username>          # GitHub user to scan
+MAX_DEPTH=3                    # Dependency recursion depth
+MAX_PROJECTS=500               # Maximum projects to process
+RATE_LIMIT_DELAY=0.5           # Seconds between API calls
+DATA_FILE=public/projects.json # Output file path
+```
+
+### **Forking for Others**
+Anyone can fork your repository and get their own visualization:
+1. Fork your repo
+2. Enable GitHub Pages
+3. Works automatically with their GitHub account
+
+## 📊 **Example Use Cases**
+
+- **Portfolio Showcase**: Display your Crystal open source contributions
+- **Team Analytics**: Visualize team's Crystal project ecosystem
+- **Dependency Analysis**: Understand project interdependencies
+- **Community Mapping**: Explore Crystal ecosystem connections
+- **Project Archaeology**: Discover old projects and activity patterns
+
+## 🔄 **Automation**
+
+The visualization updates automatically:
+- **Daily**: Fresh data every morning
+- **On Changes**: Code updates trigger new deployments
+- **Manual**: Trigger from GitHub Actions tab anytime
+
+No manual maintenance required after initial setup!
+
+## 📁 **Project Structure**
 
 ```
 rpu/
 ├── src/
-│   ├── collect_data.cr  # Data collection script
-│   └── server.cr        # Web server with embedded HTML
-├── projects/            # Cloned repositories (auto-generated)
-├── public/
-│   └── projects.json    # Generated project data
-├── shard.yml           # Crystal dependencies
-├── Makefile            # Convenience commands
-└── README.md           # This file
+│   └── collect_data.cr     # Data collection and dependency analysis
+├── .github/workflows/
+│   └── update-and-deploy.yml  # Automated CI/CD pipeline
+├── public/                  # Generated static site (auto-created)
+├── shard.yml              # Crystal dependencies
+├── Makefile               # Development utilities
+└── README.md              # This file
 ```
 
-## Data Collection Process
+## 🤝 **Contributing**
 
-1. **Repository Discovery** - Uses GitHub API to find repos with `shard.yml`
-2. **API-based Access** - Retrieves repository and file contents via GitHub API (no cloning required)
-3. **Dependency Parsing** - Extracts Crystal dependencies from `shard.yml` files
-4. **Metrics Calculation** - Uses tokei for LOC, git for modification dates
-5. **Cross-referencing** - Maps internal dependencies between projects
-6. **JSON Generation** - Creates `public/projects.json` for visualization
-
-## Development
-
-### Adding Features
-
-- **New metrics** - Modify `Project` struct and update `collect_data.cr`
-- **Visualization changes** - Edit the HTML/JavaScript in `src/server.cr`
-- **New endpoints** - Add routes in `src/server.cr`
-
-### Testing
-
-```bash
-make test
-```
-
-### Linting
-
-```bash
-make lint
-```
-
-## GitHub Actions Deployment (Automatic)
-
-The project includes a fully automated GitHub Actions workflow that:
-
-### 🚀 **Features**
-- **Daily Updates**: Automatically runs every day at 2 AM UTC
-- **Manual Triggers**: Can be triggered manually from GitHub Actions tab
-- **Smart Triggers**: Runs on code changes to `src/`, `shard.yml`, or workflow files
-- **GitHub Token**: Uses repository's GitHub token for 5000 requests/hour rate limits
-- **Static Site**: Generates a static HTML visualization and deploys to GitHub Pages
-- **Zero Maintenance**: No local setup required after initial configuration
-
-### 📋 **What It Does**
-1. **Sets up Crystal** environment with latest compiler and shards
-2. **Builds binaries** using `shards build --release`
-3. **Collects project data** using improved rate limiting with GitHub token
-4. **Generates static HTML** with interactive D3.js visualization
-5. **Deploys to GitHub Pages** automatically
-
-### ⚙️ **Configuration**
-The workflow uses these environment variables:
-- `GITHUB_TOKEN`: Automatic from GitHub Actions (5000 requests/hour)
-- `GITHUB_USER`: Repository owner (auto-detected)
-- `MAX_DEPTH`: 3 levels of dependency scanning
-- `MAX_PROJECTS`: 500 maximum projects
-- `RATE_LIMIT_DELAY`: 0.5 seconds between API calls
-
-### 🌐 **Result**
-- **Live visualization** at `https://<username>.github.io/rpu/`
-- **Always fresh data** updated daily
-- **Interactive features**: zoom, pan, tooltips, clickable nodes
-- **Mobile responsive** design
-- **Performance optimized** static site
-
-### 📊 **Workflow Triggers**
-The workflow runs automatically when:
-- **Daily**: Every day at 2 AM UTC (8 PM EST, 5 PM PST)
-- **Manual**: Click "Run workflow" in Actions tab
-- **Code changes**: Push to main branch affecting source code
-- **Workflow changes**: Updates to GitHub Actions files
-
-### 🛠️ **Setup Required**
-Just enable GitHub Pages in your repository:
-
-1. Go to **Settings** → **Pages**
-2. Select **GitHub Actions** as the source
-3. **Save** - that's it!
-
-The first run will take a few minutes, but subsequent daily updates will be much faster.
-
-## Contributing
+Contributions welcome!
 
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Add tests if applicable
-5. Run linting and tests
-6. Submit a pull request
+4. Test locally with `make test && make lint`
+5. Submit a pull request
 
-**Note**: Any changes to the codebase will automatically trigger a new deployment to GitHub Pages!
+**Note**: Your changes will automatically deploy to your fork's GitHub Pages!
 
-## License
+## 📄 **License**
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - see [LICENSE](LICENSE) file for details.
 
-## Technology Stack
+## 🔗 **Technology Stack**
 
-- **Backend** - Crystal with Kemal web framework
-- **Frontend** - D3.js for visualization, pico.css for styling
-- **Data Collection** - GitHub API, Git
-- **Build System** - Shards, Make
+- **Backend**: Crystal with GitHub API integration
+- **Visualization**: D3.js force-directed graphs
+- **Deployment**: GitHub Actions and GitHub Pages
+- **Styling**: Pico.css for clean, responsive design
+- **Data**: JSON with dependency graphs
 
-## Inspiration
+---
 
-This tool was created to help understand the relationships and scale of a Crystal developer's open source contributions at a glance. Perfect for:
-- Portfolio showcasing
-- Dependency analysis
-- Project archaeology
-- Community contribution tracking
+**Ready to visualize your Crystal projects?** Fork this repository and enable GitHub Pages to get started! 🚀
