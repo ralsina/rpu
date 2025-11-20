@@ -741,8 +741,10 @@
             selectedNode = null;
             searchResults.clear();
             currentSearch = '';
-            document.getElementById('search-input').value = '';
-            document.getElementById('search-results').style.display = 'none';
+            const searchInputField = document.getElementById('search-input');
+            const searchResultsDiv = document.getElementById('search-results');
+            if (searchInputField) searchInputField.value = '';
+            if (searchResultsDiv) searchResultsDiv.style.display = 'none';
         }
 
         // Add click handler to background to deselect
@@ -947,18 +949,19 @@
             label.style('font-weight', 'normal');
 
             // Hide search results display
-            document.getElementById('search-results').style.display = 'none';
+            const searchResultsDiv = document.getElementById('search-results');
+            if (searchResultsDiv) {
+                searchResultsDiv.style.display = 'none';
+            }
         }
 
         // Search event listeners
-        document.getElementById('search-input').addEventListener('input', (e) => {
-            searchProjects(e.target.value);
-        });
-
-        document.getElementById('clear-search').addEventListener('click', () => {
-            document.getElementById('search-input').value = '';
-            searchProjects('');
-        });
+        const searchInput = document.getElementById('search-input');
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                searchProjects(e.target.value);
+            });
+        }
 
         // Handle window resize
         window.addEventListener('resize', () => {
