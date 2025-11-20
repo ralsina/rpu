@@ -1,0 +1,462 @@
+name: Update Data and Deploy to GitHub Pages
+
+on:
+  workflow_dispatch:  # Allow manual triggering
+  schedule:
+    # Run daily at 2 AM UTC (8 PM EST, 5 PM PST)
+    - cron: '0 2 * * *'
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/**'
+      - 'shard.yml'
+      - '.github/workflows/**'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Crystal
+      uses: crystal-lang/install-crystal@v1
+      with:
+        crystal: latest
+        shards: latest
+
+    - name: Install dependencies
+      run: shards install
+
+    - name: Build binaries
+      run: shards build --release
+
+    - name: Collect project data
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_USER: ${{ github.repository_owner }}
+        MAX_DEPTH: 3
+        MAX_PROJECTS: 500
+        RATE_LIMIT_DELAY: 0.5
+        DATA_FILE: public/projects.json
+      run: |
+        mkdir -p public
+        ./bin/collect_data
+
+    - name: Generate static HTML
+      run: |
+        # Generate static visualization HTML
+        cat > public/index.html << 'EOF'
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Crystal Projects Visualization</title>
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+            <script src="https://d3js.org/d3.v7.min.js"></script>
+            <style>
+                body {
+                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+                    margin: 0;
+                    padding: 20px;
+                    background-color: #f8f9fa;
+                }
+                .container {
+                    max-width: 1200px;
+                    margin: 0 auto;
+                }
+                .header {
+                    text-align: center;
+                    margin-bottom: 30px;
+                }
+                .controls {
+                    margin-bottom: 20px;
+                    text-align: center;
+                }
+                .visualization {
+                    background: white;
+                    border-radius: 8px;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                    overflow: hidden;
+                }
+                #graph {
+                    width: 100%;
+                    height: 70vh;
+                    min-height: 500px;
+                    cursor: grab;
+                }
+                #graph:active {
+                    cursor: grabbing;
+                }
+                .node {
+                    stroke: #fff;
+                    stroke-width: 2px;
+                    cursor: pointer;
+                }
+                .node:hover {
+                    stroke-width: 3px;
+                    filter: brightness(1.1);
+                }
+                .link {
+                    stroke: #999;
+                    stroke-opacity: 0.6;
+                    cursor: default;
+                }
+                .tooltip {
+                    position: absolute;
+                    padding: 10px;
+                    background: rgba(0, 0, 0, 0.8);
+                    color: white;
+                    border-radius: 4px;
+                    pointer-events: none;
+                    font-size: 12px;
+                    max-width: 200px;
+                    z-index: 1000;
+                }
+                .stats {
+                    display: flex;
+                    justify-content: center;
+                    gap: 30px;
+                    margin: 20px 0;
+                    flex-wrap: wrap;
+                }
+                .stat {
+                    text-align: center;
+                }
+                .stat-value {
+                    font-size: 24px;
+                    font-weight: bold;
+                    color: #0066cc;
+                }
+                .stat-label {
+                    font-size: 14px;
+                    color: #666;
+                }
+                .last-updated {
+                    text-align: center;
+                    color: #666;
+                    font-size: 14px;
+                    margin-top: 20px;
+                }
+                .fork {
+                    stroke: #ff6b35 !important;
+                    stroke-width: 3px;
+                }
+                .external {
+                    fill: #87ceeb !important;
+                    stroke: #4682b4 !important;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>Crystal Projects Visualization</h1>
+                    <p>Interactive dependency graph of Crystal ecosystem projects</p>
+                </div>
+
+                <div class="stats" id="stats">
+                    <div class="stat">
+                        <div class="stat-value" id="project-count">0</div>
+                        <div class="stat-label">Projects</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="loc-count">0</div>
+                        <div class="stat-label">Lines of Code</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="dep-count">0</div>
+                        <div class="stat-label">Dependencies</div>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <button onclick="toggleLabels()">Toggle Labels</button>
+                    <button onclick="resetZoom()">Reset Zoom</button>
+                    <button onclick="toggleExternalDeps()">Toggle External</button>
+                </div>
+
+                <div class="visualization">
+                    <div id="graph"></div>
+                </div>
+
+                <div class="last-updated" id="last-updated"></div>
+            </div>
+
+            <div class="tooltip" id="tooltip" style="opacity: 0;"></div>
+
+            <script>
+                let projects = [];
+                let simulation;
+                let svg, g, link, node, label;
+                let showLabels = false;
+                let showExternal = true;
+
+                // Load and parse project data
+                fetch('projects.json')
+                    .then(response => response.json())
+                    .then(data => {
+                        projects = data;
+                        initVisualization();
+                    })
+                    .catch(error => {
+                        console.error('Error loading project data:', error);
+                        document.getElementById('graph').innerHTML =
+                            '<p style="text-align: center; padding: 50px;">Error loading project data. Please check back later.</p>';
+                    });
+
+                function initVisualization() {
+                    const container = d3.select('#graph');
+                    const width = container.node().getBoundingClientRect().width;
+                    const height = container.node().getBoundingClientRect().height;
+
+                    // Create SVG
+                    svg = container.append('svg')
+                        .attr('width', width)
+                        .attr('height', height);
+
+                    // Add zoom behavior
+                    const zoom = d3.zoom()
+                        .scaleExtent([0.1, 5])
+                        .on('zoom', (event) => {
+                            g.attr('transform', event.transform);
+                        });
+
+                    svg.call(zoom);
+
+                    g = svg.append('g');
+
+                    // Create force simulation
+                    simulation = d3.forceSimulation()
+                        .force('link', d3.forceLink().id(d => d.shard_name).distance(100))
+                        .force('charge', d3.forceManyBody().strength(-300))
+                        .force('center', d3.forceCenter(width / 2, height / 2))
+                        .force('collision', d3.forceCollide().radius(d => Math.sqrt(d.loc || 1000) + 5));
+
+                    // Process nodes and links
+                    const { nodes, links } = processGraphData(projects);
+
+                    // Create links
+                    link = g.append('g')
+                        .selectAll('line')
+                        .data(links)
+                        .enter().append('line')
+                        .attr('class', 'link')
+                        .attr('stroke-dasharray', d => d.source.external || d.target.external ? '5,5' : null);
+
+                    // Create nodes
+                    node = g.append('g')
+                        .selectAll('circle')
+                        .data(nodes)
+                        .enter().append('circle')
+                        .attr('class', d => d.fork ? 'node fork' : d.external ? 'node external' : 'node')
+                        .attr('r', d => d.external ? 8 : Math.sqrt(Math.max(d.loc || 100, 100)) / 2)
+                        .attr('fill', d => getNodeColor(d))
+                        .on('click', (event, d) => {
+                            if (d.url && !d.url.startsWith('data:')) {
+                                window.open(d.url, '_blank');
+                            }
+                        })
+                        .on('mouseover', showTooltip)
+                        .on('mouseout', hideTooltip);
+
+                    // Create labels
+                    label = g.append('g')
+                        .selectAll('text')
+                        .data(nodes.filter(d => !d.external))
+                        .enter().append('text')
+                        .text(d => d.name)
+                        .style('font-size', '10px')
+                        .style('text-anchor', 'middle')
+                        .style('dy', '.35em')
+                        .style('pointer-events', 'none')
+                        .style('opacity', 0);
+
+                    // Start simulation
+                    simulation.nodes(nodes)
+                        .on('tick', ticked);
+
+                    simulation.force('link').links(links);
+
+                    // Update stats
+                    updateStats();
+                    updateLastUpdated();
+                }
+
+                function processGraphData(projects) {
+                    const nodes = [];
+                    const links = [];
+                    const nodeMap = new Map();
+
+                    // Add project nodes
+                    projects.forEach(project => {
+                        const node = {
+                            id: project.shard_name,
+                            name: project.name,
+                            shard_name: project.shard_name,
+                            loc: project.loc,
+                            description: project.description,
+                            url: project.url,
+                            fork: project.fork,
+                            external: project.external,
+                            last_modified: project.last_modified
+                        };
+                        nodes.push(node);
+                        nodeMap.set(project.shard_name, node);
+                    });
+
+                    // Add dependency links
+                    projects.forEach(project => {
+                        project.dependencies.forEach(dep => {
+                            const target = nodeMap.get(dep);
+                            if (target) {
+                                links.push({
+                                    source: project.shard_name,
+                                    target: dep,
+                                    value: 1
+                                });
+                            } else if (showExternal) {
+                                // Add external dependency node if it doesn't exist
+                                if (!nodeMap.has(dep)) {
+                                    const externalNode = {
+                                        id: dep,
+                                        name: dep,
+                                        shard_name: dep,
+                                        external: true,
+                                        loc: 0,
+                                        description: `External dependency: ${dep}`,
+                                        url: `https://github.com/search?q=${dep}+language%3ACrystal`
+                                    };
+                                    nodes.push(externalNode);
+                                    nodeMap.set(dep, externalNode);
+                                }
+                                links.push({
+                                    source: project.shard_name,
+                                    target: dep,
+                                    value: 1
+                                });
+                            }
+                        });
+                    });
+
+                    return { nodes, links };
+                }
+
+                function getNodeColor(node) {
+                    if (node.external) return '#87ceeb';
+
+                    if (!node.last_modified) return '#999';
+
+                    const now = new Date();
+                    const modified = new Date(node.last_modified);
+                    const daysDiff = (now - modified) / (1000 * 60 * 60 * 24);
+
+                    if (daysDiff < 30) return '#22c55e';      // Green - recent
+                    if (daysDiff < 90) return '#84cc16';      // Light green
+                    if (daysDiff < 180) return '#eab308';     // Yellow
+                    if (daysDiff < 365) return '#f97316';     // Orange
+                    return '#ef4444';                         // Red - old
+                }
+
+                function ticked() {
+                    link
+                        .attr('x1', d => d.source.x)
+                        .attr('y1', d => d.source.y)
+                        .attr('x2', d => d.target.x)
+                        .attr('y2', d => d.target.y);
+
+                    node
+                        .attr('cx', d => d.x)
+                        .attr('cy', d => d.y);
+
+                    label
+                        .attr('x', d => d.x)
+                        .attr('y', d => d.y);
+                }
+
+                function showTooltip(event, d) {
+                    const tooltip = d3.select('#tooltip');
+                    tooltip.transition().duration(200).style('opacity', .9);
+                    tooltip.html(`
+                        <strong>${d.name}</strong><br/>
+                        ${d.description || 'No description'}<br/>
+                        ${d.loc ? `LOC: ${d.loc.toLocaleString()}<br/>` : ''}
+                        ${d.fork ? '🔄 Fork<br/>' : ''}
+                        ${d.external ? '📦 External dependency<br/>' : ''}
+                        ${d.last_modified ? `Modified: ${new Date(d.last_modified).toLocaleDateString()}<br/>` : ''}
+                        ${!d.external ? '<em>Click to open repository</em>' : ''}
+                    `)
+                    .style('left', (event.pageX + 10) + 'px')
+                    .style('top', (event.pageY - 28) + 'px');
+                }
+
+                function hideTooltip() {
+                    d3.select('#tooltip').transition().duration(500).style('opacity', 0);
+                }
+
+                function toggleLabels() {
+                    showLabels = !showLabels;
+                    label.style('opacity', showLabels ? 1 : 0);
+                }
+
+                function resetZoom() {
+                    svg.transition().duration(750).call(
+                        d3.zoom().transform,
+                        d3.zoomIdentity
+                    );
+                }
+
+                function toggleExternalDeps() {
+                    showExternal = !showExternal;
+                    initVisualization();
+                }
+
+                function updateStats() {
+                    const internalProjects = projects.filter(p => !p.external);
+                    const totalLOC = internalProjects.reduce((sum, p) => sum + (p.loc || 0), 0);
+                    const totalDeps = internalProjects.reduce((sum, p) => sum + p.dependencies.length, 0);
+
+                    document.getElementById('project-count').textContent = internalProjects.length.toLocaleString();
+                    document.getElementById('loc-count').textContent = Math.round(totalLOC / 1000) + 'k';
+                    document.getElementById('dep-count').textContent = totalDeps.toLocaleString();
+                }
+
+                function updateLastUpdated() {
+                    const now = new Date();
+                    document.getElementById('last-updated').textContent =
+                        `Last updated: ${now.toLocaleDateString()} at ${now.toLocaleTimeString()}`;
+                }
+
+                // Handle window resize
+                window.addEventListener('resize', () => {
+                    if (projects.length > 0) {
+                        d3.select('#graph').selectAll('*').remove();
+                        initVisualization();
+                    }
+                });
+            </script>
+        </body>
+        </html>
+        EOF
+
+    - name: Setup Pages
+      uses: actions/configure-pages@v4
+
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: './public'
+
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4

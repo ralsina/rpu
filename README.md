@@ -236,6 +236,56 @@ make test
 make lint
 ```
 
+## GitHub Actions Deployment (Automatic)
+
+The project includes a fully automated GitHub Actions workflow that:
+
+### 🚀 **Features**
+- **Daily Updates**: Automatically runs every day at 2 AM UTC
+- **Manual Triggers**: Can be triggered manually from GitHub Actions tab
+- **Smart Triggers**: Runs on code changes to `src/`, `shard.yml`, or workflow files
+- **GitHub Token**: Uses repository's GitHub token for 5000 requests/hour rate limits
+- **Static Site**: Generates a static HTML visualization and deploys to GitHub Pages
+- **Zero Maintenance**: No local setup required after initial configuration
+
+### 📋 **What It Does**
+1. **Sets up Crystal** environment with latest compiler and shards
+2. **Builds binaries** using `shards build --release`
+3. **Collects project data** using improved rate limiting with GitHub token
+4. **Generates static HTML** with interactive D3.js visualization
+5. **Deploys to GitHub Pages** automatically
+
+### ⚙️ **Configuration**
+The workflow uses these environment variables:
+- `GITHUB_TOKEN`: Automatic from GitHub Actions (5000 requests/hour)
+- `GITHUB_USER`: Repository owner (auto-detected)
+- `MAX_DEPTH`: 3 levels of dependency scanning
+- `MAX_PROJECTS`: 500 maximum projects
+- `RATE_LIMIT_DELAY`: 0.5 seconds between API calls
+
+### 🌐 **Result**
+- **Live visualization** at `https://<username>.github.io/rpu/`
+- **Always fresh data** updated daily
+- **Interactive features**: zoom, pan, tooltips, clickable nodes
+- **Mobile responsive** design
+- **Performance optimized** static site
+
+### 📊 **Workflow Triggers**
+The workflow runs automatically when:
+- **Daily**: Every day at 2 AM UTC (8 PM EST, 5 PM PST)
+- **Manual**: Click "Run workflow" in Actions tab
+- **Code changes**: Push to main branch affecting source code
+- **Workflow changes**: Updates to GitHub Actions files
+
+### 🛠️ **Setup Required**
+Just enable GitHub Pages in your repository:
+
+1. Go to **Settings** → **Pages**
+2. Select **GitHub Actions** as the source
+3. **Save** - that's it!
+
+The first run will take a few minutes, but subsequent daily updates will be much faster.
+
 ## Contributing
 
 1. Fork the repository
@@ -244,6 +294,8 @@ make lint
 4. Add tests if applicable
 5. Run linting and tests
 6. Submit a pull request
+
+**Note**: Any changes to the codebase will automatically trigger a new deployment to GitHub Pages!
 
 ## License
 
