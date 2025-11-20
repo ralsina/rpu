@@ -72,23 +72,6 @@
     "depth": 0
   },
   {
-    "name": "crest",
-    "shard_name": "crest",
-    "path": "api",
-    "description": "HTTP and REST client for Crystal",
-    "url": "https://github.com/ralsina/crest",
-    "loc": 153007,
-    "last_modified": "2025-10-09T15:06:35Z",
-    "dependencies": [
-      "http-client-digest_auth",
-      "http_proxy"
-    ],
-    "external_dependencies": [],
-    "fork": true,
-    "external": false,
-    "depth": 0
-  },
-  {
     "name": "croupier",
     "shard_name": "croupier",
     "path": "api",
@@ -113,7 +96,7 @@
     "description": "A Crystal implementation of Docco",
     "url": "https://github.com/ralsina/crycco",
     "loc": 25483,
-    "last_modified": "2025-06-06T21:29:07Z",
+    "last_modified": "2025-11-20T16:22:43Z",
     "dependencies": [
       "baked_file_system",
       "crinja",
@@ -173,22 +156,6 @@
     "depth": 0
   },
   {
-    "name": "docr",
-    "shard_name": "docr",
-    "path": "api",
-    "description": "Crystal library for Docker Engine API",
-    "url": "https://github.com/ralsina/docr",
-    "loc": 76228,
-    "last_modified": "2024-09-03T15:33:26Z",
-    "dependencies": [
-      "crystar"
-    ],
-    "external_dependencies": [],
-    "fork": true,
-    "external": false,
-    "depth": 0
-  },
-  {
     "name": "elkjs",
     "shard_name": "elkjs",
     "path": "api",
@@ -209,7 +176,7 @@
     "description": "Functions as a Server, Obviously",
     "url": "https://github.com/ralsina/faaso",
     "loc": 53066,
-    "last_modified": "2025-04-14T20:52:12Z",
+    "last_modified": "2025-11-20T16:14:02Z",
     "dependencies": [
       "baked_file_system",
       "base58",
@@ -282,20 +249,6 @@
     ],
     "external_dependencies": [],
     "fork": false,
-    "external": false,
-    "depth": 0
-  },
-  {
-    "name": "inotify.cr",
-    "shard_name": "inotify",
-    "path": "api",
-    "description": "Inotify bindings for Crystal",
-    "url": "https://github.com/ralsina/inotify.cr",
-    "loc": 20719,
-    "last_modified": "2025-10-30T23:18:55Z",
-    "dependencies": [],
-    "external_dependencies": [],
-    "fork": true,
     "external": false,
     "depth": 0
   },
@@ -430,8 +383,8 @@
     "path": "api",
     "description": "",
     "url": "https://github.com/ralsina/markterm",
-    "loc": 21198,
-    "last_modified": "2025-09-04T22:03:11Z",
+    "loc": 21148,
+    "last_modified": "2025-11-20T16:21:10Z",
     "dependencies": [
       "markd",
       "docopt",
@@ -555,8 +508,8 @@
     "path": "api",
     "description": "Crystal Projects Visualization - Interactive dependency graph for Crystal projects",
     "url": "https://github.com/ralsina/rpu",
-    "loc": 20200,
-    "last_modified": "2025-11-20T15:19:46Z",
+    "loc": 20169,
+    "last_modified": "2025-11-20T16:18:39Z",
     "dependencies": [
       "docopt",
       "docopt-config"
@@ -617,7 +570,7 @@
     "description": "",
     "url": "https://github.com/ralsina/sixteen",
     "loc": 11957,
-    "last_modified": "2025-06-16T14:34:34Z",
+    "last_modified": "2025-11-20T16:22:14Z",
     "dependencies": [
       "baked_file_system"
     ],
@@ -632,8 +585,8 @@
     "path": "api",
     "description": "A Crystal reimplementation of the Pygments/Chroma syntax highlighters",
     "url": "https://github.com/ralsina/tartrazine",
-    "loc": 130194,
-    "last_modified": "2025-11-05T15:38:13Z",
+    "loc": 130193,
+    "last_modified": "2025-11-20T16:22:03Z",
     "dependencies": [
       "baked_file_system",
       "base58",
@@ -707,36 +660,6 @@
     "discovered_from": "ralsina/caddy-static"
   },
   {
-    "name": "http-client-digest_auth",
-    "shard_name": "http-client-digest_auth",
-    "path": "api",
-    "description": "An implementation of RFC 2617 Digest Access Authentication for Crystal",
-    "url": "https://github.com/mamantoha/http-client-digest_auth",
-    "loc": 7759,
-    "last_modified": "2023-08-21T08:44:14Z",
-    "dependencies": [],
-    "external_dependencies": [],
-    "fork": false,
-    "external": true,
-    "depth": 1,
-    "discovered_from": "ralsina/crest"
-  },
-  {
-    "name": "http_proxy",
-    "shard_name": "http_proxy",
-    "path": "api",
-    "description": "A HTTP Proxy server and client written in Crystal",
-    "url": "https://github.com/mamantoha/http_proxy",
-    "loc": 18574,
-    "last_modified": "2025-10-24T11:19:37Z",
-    "dependencies": [],
-    "external_dependencies": [],
-    "fork": false,
-    "external": true,
-    "depth": 1,
-    "discovered_from": "ralsina/crest"
-  },
-  {
     "name": "crystalline",
     "shard_name": "crystalline",
     "path": "api",
@@ -759,21 +682,6 @@
     "url": "https://github.com/straight-shoota/crinja",
     "loc": 350530,
     "last_modified": "2025-11-18T18:12:44Z",
-    "dependencies": [],
-    "external_dependencies": [],
-    "fork": false,
-    "external": true,
-    "depth": 1,
-    "discovered_from": "ralsina/crycco"
-  },
-  {
-    "name": "docopt.cr",
-    "shard_name": "docopt",
-    "path": "api",
-    "description": "docopt for crystal-lang",
-    "url": "https://github.com/chenkovsky/docopt.cr",
-    "loc": 22912,
-    "last_modified": "2023-08-29T09:52:54Z",
     "dependencies": [],
     "external_dependencies": [],
     "fork": false,
@@ -812,36 +720,6 @@
     "discovered_from": "ralsina/crycco"
   },
   {
-    "name": "crystar",
-    "shard_name": "crystar",
-    "path": "api",
-    "description": "Crystal language Tar Module implements access to tar archives.",
-    "url": "https://github.com/naqvis/crystar",
-    "loc": 148404,
-    "last_modified": "2024-06-20T14:11:34Z",
-    "dependencies": [],
-    "external_dependencies": [],
-    "fork": false,
-    "external": true,
-    "depth": 1,
-    "discovered_from": "ralsina/docr"
-  },
-  {
-    "name": "baked_file_system",
-    "shard_name": "baked_file_system",
-    "path": "api",
-    "description": "Virtual File System for Crystal language. Embedding your assets into final binary.",
-    "url": "https://github.com/schovi/baked_file_system",
-    "loc": 106129,
-    "last_modified": "2025-11-10T12:24:36Z",
-    "dependencies": [],
-    "external_dependencies": [],
-    "fork": false,
-    "external": true,
-    "depth": 1,
-    "discovered_from": "ralsina/faaso"
-  },
-  {
     "name": "base58.cr",
     "shard_name": "base58",
     "path": "api",
@@ -868,6 +746,21 @@
       "http-client-digest_auth",
       "http_proxy"
     ],
+    "external_dependencies": [],
+    "fork": false,
+    "external": true,
+    "depth": 1,
+    "discovered_from": "ralsina/faaso"
+  },
+  {
+    "name": "crystar",
+    "shard_name": "crystar",
+    "path": "api",
+    "description": "Crystal language Tar Module implements access to tar archives.",
+    "url": "https://github.com/naqvis/crystar",
+    "loc": 148404,
+    "last_modified": "2024-06-20T14:11:34Z",
+    "dependencies": [],
     "external_dependencies": [],
     "fork": false,
     "external": true,
@@ -1037,6 +930,21 @@
     "discovered_from": "ralsina/kv"
   },
   {
+    "name": "docopt.cr",
+    "shard_name": "docopt",
+    "path": "api",
+    "description": "docopt for crystal-lang",
+    "url": "https://github.com/chenkovsky/docopt.cr",
+    "loc": 22912,
+    "last_modified": "2023-08-29T09:52:54Z",
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": false,
+    "external": true,
+    "depth": 1,
+    "discovered_from": "ralsina/libctags.cr"
+  },
+  {
     "name": "stumpy_png",
     "shard_name": "stumpy_png",
     "path": "api",
@@ -1052,6 +960,21 @@
     "external": true,
     "depth": 1,
     "discovered_from": "ralsina/lime"
+  },
+  {
+    "name": "baked_file_system",
+    "shard_name": "baked_file_system",
+    "path": "api",
+    "description": "Virtual File System for Crystal language. Embedding your assets into final binary.",
+    "url": "https://github.com/schovi/baked_file_system",
+    "loc": 106129,
+    "last_modified": "2025-11-10T12:24:36Z",
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": false,
+    "external": true,
+    "depth": 1,
+    "discovered_from": "ralsina/mangrullo"
   },
   {
     "name": "progress",
@@ -1239,6 +1162,36 @@
     "external": true,
     "depth": 1,
     "discovered_from": "ralsina/tocry"
+  },
+  {
+    "name": "http-client-digest_auth",
+    "shard_name": "http-client-digest_auth",
+    "path": "api",
+    "description": "An implementation of RFC 2617 Digest Access Authentication for Crystal",
+    "url": "https://github.com/mamantoha/http-client-digest_auth",
+    "loc": 7759,
+    "last_modified": "2023-08-21T08:44:14Z",
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": false,
+    "external": true,
+    "depth": 2,
+    "discovered_from": "mamantoha/crest"
+  },
+  {
+    "name": "http_proxy",
+    "shard_name": "http_proxy",
+    "path": "api",
+    "description": "A HTTP Proxy server and client written in Crystal",
+    "url": "https://github.com/mamantoha/http_proxy",
+    "loc": 18574,
+    "last_modified": "2025-10-24T11:19:37Z",
+    "dependencies": [],
+    "external_dependencies": [],
+    "fork": false,
+    "external": true,
+    "depth": 2,
+    "discovered_from": "mamantoha/crest"
   },
   {
     "name": "radix",

@@ -44,7 +44,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GITHUB_USER: ${{ github.repository_owner }}
-        MAX_DEPTH: 3
+        MAX_DEPTH: 5
         MAX_PROJECTS: 500
         RATE_LIMIT_DELAY: 0.5
         DATA_FILE: public/projects.json

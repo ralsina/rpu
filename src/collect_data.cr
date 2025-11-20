@@ -129,7 +129,7 @@ end
 
 CONFIG = get_config
 DATA_FILE = CONFIG["data-file"].to_s
-MAX_DEPTH = get_int_value(CONFIG["max-depth"]) || 3
+MAX_DEPTH = get_int_value(CONFIG["max-depth"]) || 5
 MAX_PROJECTS = get_int_value(CONFIG["max-projects"]) || 500
 RATE_LIMIT_DELAY = get_float_value(CONFIG["rate-limit"]) || 0.1
 GITHUB_USER = get_string_value(CONFIG["github-user"]) || "ralsina"
