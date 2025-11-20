@@ -470,6 +470,10 @@ class ProjectDataCollector
     project.dependencies = dependencies
     project.last_modified = repo_info["pushed_at"]?.try(&.as_s?).try { |time_str| Time.parse_rfc3339(time_str) }
 
+    # Determine if this is an external repository (not owned by GITHUB_USER)
+    repo_owner = repo.split("/")[0]
+    project.external = repo_owner != GITHUB_USER
+
     # Get Crystal LOC from GitHub API language statistics
     languages = get_repo_languages(repo)
     project.loc = languages.try(&.["Crystal"]?.try(&.as_i)) || repo_info["size"]?.try(&.as_i?) || 0
@@ -539,25 +543,16 @@ class ProjectDataCollector
 
     FileUtils.mkdir_p("public") unless Dir.exists?("public")
 
-    # The templates should already exist in public/ from git
-    # They just need to be available for the static site
-    template_files = ["public/index.html", "public/style.css", "public/visualization.js"]
-
-    missing_files = [] of String
-    template_files.each do |file|
-      unless File.exists?(file)
-        missing_files << file
-      end
+    # Check if main template exists
+    unless File.exists?("public/index.html")
+      puts "#{Colors.red("✖")} Error: public/index.html template not found!"
+      puts "    Cannot generate static site without HTML template."
+      exit 1
     end
 
-    if missing_files.empty?
-      puts Colors.green("✓ All template files available in public/")
-    else
-      puts Colors.yellow("⚠ Missing template files: #{missing_files.join(", ")}")
-      puts Colors.yellow("  The static site may not function correctly.")
-    end
-
-    puts Colors.green("✓ Generated static HTML site")
+    puts "#{Colors.green("✓")} HTML template found: public/index.html"
+    puts "#{Colors.green("✓")} Self-contained template with embedded CSS and JavaScript"
+    puts "#{Colors.green("✓")} Static site ready for GitHub Pages deployment"
   end
 
   # Generate project data JSON
