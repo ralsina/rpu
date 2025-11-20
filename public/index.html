@@ -444,19 +444,21 @@
             // Create force simulation
             simulation = d3.forceSimulation()
                 .force('link', d3.forceLink().id(d => d.shard_name).distance(80))
-                .force('charge', d3.forceManyBody().strength(-200))  // Reduced repulsion to keep nodes closer
-                .force('center', d3.forceCenter(width / 2, height / 2))
+                .force('charge', d3.forceManyBody().strength(-120))  // Further reduced repulsion to keep unconnected nodes closer
+                .force('center', d3.forceCenter(width / 2, height / 2).strength(0.1))  // Weaker center force to allow natural clustering
                 .force('collision', d3.forceCollide().radius(d => {
                     const minSize = 12;
                     const maxSize = 30;
                     if (d.external || d.fork) {
-                        return minSize + 8; // Minimum size for forks and external
+                        return minSize + 5; // Smaller collision radius for forks and external nodes
                     }
                     // Scale regular projects based on LOC between min and max
                     const locSize = Math.sqrt(Math.max(d.loc || 100, 100));
                     const scaledSize = minSize + (locSize / 2);
-                    return Math.min(Math.max(scaledSize, minSize), maxSize) + 8;
-                }));
+                    return Math.min(Math.max(scaledSize, minSize), maxSize) + 5;
+                }))
+                .force('x', d3.forceX(width / 2).strength(0.05))  // Gentle pull toward center horizontally
+                .force('y', d3.forceY(height / 2).strength(0.05))  // Gentle pull toward center vertically
 
             // Process nodes and links
             const { nodes, links } = processGraphData(projects);
