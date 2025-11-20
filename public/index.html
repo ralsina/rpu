@@ -381,7 +381,7 @@
                 if (node.external || node.fork) {
                     radius = minSize;
                 } else {
-                    const locRange = 500000;
+                    const locRange = 50000;
                     const loc = Math.min(node.loc, locRange);
                     radius = minSize + (maxSize - minSize) * (loc / locRange);
                 }
@@ -685,7 +685,7 @@
                 if (node.external || node.fork) {
                     radius = minSize;
                 } else {
-                    const locRange = 500000;
+                    const locRange = 50000;
                     const loc = Math.min(node.loc, locRange);
                     radius = minSize + (maxSize - minSize) * (loc / locRange);
                 }
