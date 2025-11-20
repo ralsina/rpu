@@ -33,6 +33,53 @@
             flex-direction: column;
             min-width: 0;
         }
+
+        .search-container {
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        #search-input {
+            width: 100%;
+            max-width: 400px;
+            padding: 0.5rem;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            background: #0d1117;
+            color: #c9d1d9;
+            font-size: 14px;
+        }
+
+        #search-input:focus {
+            outline: none;
+            border-color: #58a6ff;
+            box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.1);
+        }
+
+        #clear-search {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #21262d;
+            color: #c9d1d9;
+            border: 1px solid #30363d;
+            border-radius: 4px;
+            padding: 0.25rem 0.5rem;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        #clear-search:hover {
+            background: #30363d;
+        }
+
+        #search-results {
+            margin-top: 0.5rem;
+            font-size: 12px;
+            color: #8b949e;
+        }
+
         .header {
             text-align: center;
             padding: 20px;
@@ -259,6 +306,13 @@
         </div>
 
         <div class="main-content">
+            <div class="search-container">
+                <input type="text" id="search-input" placeholder="Search projects..." autocomplete="off">
+                <button id="clear-search" style="display: none;">Clear</button>
+                <div id="search-results" style="display: none;">
+                    <span id="search-count"></span> matching projects
+                </div>
+            </div>
             <div class="stats" id="stats">
                 <div class="stat">
                     <div class="stat-value" id="project-count">0</div>
@@ -291,6 +345,8 @@
         let showLabels = true;
         let showExternal = true;
         let selectedNode = null;
+        let searchResults = new Set();
+        let currentSearch = '';
 
         // Load and parse project data
         fetch('projects.json')
@@ -721,6 +777,97 @@
             document.getElementById('last-updated').textContent =
                 `Last updated: ${now.toLocaleDateString()} at ${now.toLocaleTimeString()}`;
         }
+
+        // Search functionality
+        function searchProjects(query) {
+            currentSearch = query.toLowerCase().trim();
+            searchResults.clear();
+
+            if (currentSearch === '') {
+                resetSearchHighlight();
+                return;
+            }
+
+            projects.forEach(project => {
+                if (project.name.toLowerCase().includes(currentSearch) ||
+                    project.description?.toLowerCase().includes(currentSearch) ||
+                    project.shard_name.toLowerCase().includes(currentSearch)) {
+                    searchResults.add(project.id);
+                }
+            });
+
+            updateSearchHighlight();
+        }
+
+        function updateSearchHighlight() {
+            if (!node) return;
+
+            // Reset all nodes to normal opacity first
+            node.style('opacity', d => selectedNode && !searchResults.has(d.id) ? 0.2 : 1);
+            link.style('opacity', d => {
+                if (searchResults.size === 0) return 0.7;
+                const sourceId = typeof d.source === 'object' ? d.source.id : d.source;
+                const targetId = typeof d.target === 'object' ? d.target.id : d.target;
+                const isHighlighted = searchResults.has(sourceId) || searchResults.has(targetId);
+                return isHighlighted ? 1 : 0.1;
+            });
+            label.style('opacity', d => selectedNode && !searchResults.has(d.id) ? 0.2 : 1);
+
+            // Highlight matching nodes
+            if (searchResults.size > 0) {
+                node.filter(d => searchResults.has(d.id))
+                    .style('opacity', 1)
+                    .attr('stroke', '#ffeb3b')
+                    .attr('stroke-width', d => d.fork ? '4px' : '3px');
+
+                // Highlight labels of matching nodes
+                label.filter(d => searchResults.has(d.id))
+                    .style('opacity', 1)
+                    .style('font-weight', 'bold');
+            }
+
+            // Update search results display
+            const searchResultsDiv = document.getElementById('search-results');
+            const searchCount = document.getElementById('search-count');
+            const clearButton = document.getElementById('clear-search');
+
+            if (currentSearch) {
+                searchCount.textContent = searchResults.size;
+                searchResultsDiv.style.display = 'block';
+                clearButton.style.display = 'inline-block';
+            } else {
+                searchResultsDiv.style.display = 'none';
+                clearButton.style.display = 'none';
+            }
+        }
+
+        function resetSearchHighlight() {
+            if (!node) return;
+
+            // Restore normal appearance
+            node.style('opacity', d => selectedNode && d.id !== selectedNode.id ? 0.2 : 1);
+            link.style('opacity', d => selectedNode ? 0.1 : 0.7);
+            label.style('opacity', d => selectedNode && d.id !== selectedNode.id ? 0.2 : 1);
+
+            // Remove search-specific styling
+            node.style('stroke', d => d.fork ? '#ff6b35' : '#fff')
+                .style('stroke-width', d => d.fork ? '3px' : '2px');
+            label.style('font-weight', 'normal');
+
+            // Hide search results display
+            document.getElementById('search-results').style.display = 'none';
+            document.getElementById('clear-search').style.display = 'none';
+        }
+
+        // Search event listeners
+        document.getElementById('search-input').addEventListener('input', (e) => {
+            searchProjects(e.target.value);
+        });
+
+        document.getElementById('clear-search').addEventListener('click', () => {
+            document.getElementById('search-input').value = '';
+            searchProjects('');
+        });
 
         // Handle window resize
         window.addEventListener('resize', () => {
