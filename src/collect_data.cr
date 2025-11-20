@@ -232,6 +232,27 @@ class ProjectDataCollector
           end
         elsif response.status_code == 404
           nil # Not found
+        elsif response.status_code == 301 || response.status_code == 302 || response.status_code == 307
+          # Handle redirects for moved/renamed repositories
+          if response.headers["Location"]?
+            location = response.headers["Location"]
+            puts Colors.yellow("→ Repository moved (#{response.status_code}): #{endpoint}")
+            # Extract new repo path from Location header if it's a GitHub redirect
+            if location.includes?("github.com/")
+              match = location.match(/github\.com\/([^\/]+\/[^\/\?#]+)/)
+              if match
+                new_repo = match[1]
+                puts Colors.blue("→ Redirecting to: #{new_repo}")
+                # Retry with the new repository path
+                if endpoint.starts_with?("repos/")
+                  new_endpoint = endpoint.sub(/^repos\/[^\/]+\/[^\/]+/, "repos/#{new_repo}")
+                  return github_api_request(new_endpoint, retry_count)
+                end
+              end
+            end
+          end
+          puts Colors.yellow("→ Unable to follow redirect for #{endpoint}")
+          nil
         else
           puts Colors.yellow("→ API request failed for #{endpoint}: #{response.status_code}")
           sleep(RATE_LIMIT_DELAY.seconds)  # Brief pause on other errors
