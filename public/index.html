@@ -785,7 +785,19 @@
             const links = window.graphLinks || [];
             const nodes = window.graphNodes || [];
 
-            // Find direct connections (first level)
+            // Find downstream dependency chain (following the direction of dependencies)
+            // Level 0: Find nodes that point TO the selected node (upstream dependencies)
+            links.forEach(l => {
+                const sourceId = typeof l.source === 'object' ? l.source.id : l.source;
+                const targetId = typeof l.target === 'object' ? l.target.id : l.target;
+
+                if (targetId === d.id) {
+                    connectedNodes.add(sourceId);
+                    connectedLinks.add(l);
+                }
+            });
+
+            // Level 1: Find nodes that selected node points TO (direct dependencies)
             links.forEach(l => {
                 const sourceId = typeof l.source === 'object' ? l.source.id : l.source;
                 const targetId = typeof l.target === 'object' ? l.target.id : l.target;
@@ -793,28 +805,30 @@
                 if (sourceId === d.id) {
                     connectedNodes.add(targetId);
                     connectedLinks.add(l);
-                } else if (targetId === d.id) {
-                    connectedNodes.add(sourceId);
-                    connectedLinks.add(l);
                 }
             });
 
-            // Find indirect connections (second level)
-            connectedNodes.forEach(nodeId => {
-                if (nodeId !== d.id) { // Skip the selected node itself
-                    links.forEach(l => {
-                        const sourceId = typeof l.source === 'object' ? l.source.id : l.source;
-                        const targetId = typeof l.target === 'object' ? l.target.id : l.target;
+            // Level 2: Find indirect dependencies (dependencies of direct dependencies)
+            const directDeps = new Set();
+            links.forEach(l => {
+                const sourceId = typeof l.source === 'object' ? l.source.id : l.source;
+                const targetId = typeof l.target === 'object' ? l.target.id : l.target;
 
-                        if (sourceId === nodeId && !connectedNodes.has(targetId)) {
-                            indirectNodes.add(targetId);
-                            indirectLinks.add(l);
-                        } else if (targetId === nodeId && !connectedNodes.has(sourceId)) {
-                            indirectNodes.add(sourceId);
-                            indirectLinks.add(l);
-                        }
-                    });
+                if (sourceId === d.id) {
+                    directDeps.add(targetId);
                 }
+            });
+
+            directDeps.forEach(nodeId => {
+                links.forEach(l => {
+                    const sourceId = typeof l.source === 'object' ? l.source.id : l.source;
+                    const targetId = typeof l.target === 'object' ? l.target.id : l.target;
+
+                    if (sourceId === nodeId && !connectedNodes.has(targetId)) {
+                        indirectNodes.add(targetId);
+                        indirectLinks.add(l);
+                    }
+                });
             });
 
             console.log('Selected node:', d.id);
@@ -824,50 +838,50 @@
             console.log('Indirect links:', indirectLinks.size);
 
             // Dim all elements first
-            node.style('opacity', 0.1);
-            link.style('opacity', 0.05);
-            label.style('opacity', 0.1);
-            arrows.style('opacity', 0.05);
+            node.style('opacity', 0.15);
+            link.style('opacity', 0.1);
+            label.style('opacity', 0.15);
+            arrows.style('opacity', 0.1);
 
             // Highlight selected node and direct connections
             node.filter(function(n) {
                 const nodeId = typeof n === 'object' ? n.id : n;
-                return connectedNodes.has(nodeId);
+                return connectedNodes.has(nodeId) || nodeId === d.id;
             }).style('opacity', 1);
 
             link.filter(function(l) {
                 return connectedLinks.has(l);
-            }).style('opacity', 1);
+            }).style('opacity', 0.9);
 
             // Highlight arrows for direct connections
             arrows.filter(function(a) {
                 return connectedLinks.has(a.__data__);
-            }).style('opacity', 1);
+            }).style('opacity', 0.9);
 
             label.filter(function(l) {
                 const labelId = typeof l === 'object' ? l.id : l;
-                return connectedNodes.has(labelId);
+                return connectedNodes.has(labelId) || labelId === d.id;
             }).style('opacity', 1);
 
             // Semi-highlight indirect connections
             node.filter(function(n) {
                 const nodeId = typeof n === 'object' ? n.id : n;
                 return indirectNodes.has(nodeId);
-            }).style('opacity', 0.5);
+            }).style('opacity', 0.6);
 
             link.filter(function(l) {
                 return indirectLinks.has(l);
-            }).style('opacity', 0.4);
+            }).style('opacity', 0.5);
 
             // Semi-highlight arrows for indirect connections
             arrows.filter(function(a) {
                 return indirectLinks.has(a.__data__);
-            }).style('opacity', 0.4);
+            }).style('opacity', 0.5);
 
             label.filter(function(l) {
                 const labelId = typeof l === 'object' ? l.id : l;
                 return indirectNodes.has(labelId);
-            }).style('opacity', 0.5);
+            }).style('opacity', 0.6);
 
             // Zoom to fit the connected nodes
             const connectedNodeData = nodes.filter(n => connectedNodes.has(n.id));
