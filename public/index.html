@@ -419,8 +419,9 @@
             const arrowBaseY = endY - unitY * arrowLength;
 
             // Calculate perpendicular vector for arrow width
-            const perpX = -unitY * (arrowWidth / 2);
-            const perpY = unitX * (arrowWidth / 2);
+            // In SVG, Y increases downward, so we need to flip the sign
+            const perpX = unitY * (arrowWidth / 2);
+            const perpY = -unitX * (arrowWidth / 2);
 
             // Build arrow path
             return `M ${arrowTipX} ${arrowTipY} L ${arrowBaseX + perpX} ${arrowBaseY + perpY} L ${arrowBaseX - perpX} ${arrowBaseY - perpY} Z`;
