@@ -539,20 +539,22 @@ class ProjectDataCollector
 
     FileUtils.mkdir_p("public") unless Dir.exists?("public")
 
-    # Copy template files if they exist
-    template_files = {
-      "public/index.html" => "public/index.html",
-      "public/style.css" => "public/style.css",
-      "public/visualization.js" => "public/visualization.js"
-    }
+    # The templates should already exist in public/ from git
+    # They just need to be available for the static site
+    template_files = ["public/index.html", "public/style.css", "public/visualization.js"]
 
-    template_files.each do |source, dest|
-      if File.exists?(source)
-        FileUtils.cp(source, dest)
-        puts Colors.green("✓ Copied #{source}")
-      else
-        puts Colors.yellow("⚠ Template file #{source} not found, skipping...")
+    missing_files = [] of String
+    template_files.each do |file|
+      unless File.exists?(file)
+        missing_files << file
       end
+    end
+
+    if missing_files.empty?
+      puts Colors.green("✓ All template files available in public/")
+    else
+      puts Colors.yellow("⚠ Missing template files: #{missing_files.join(", ")}")
+      puts Colors.yellow("  The static site may not function correctly.")
     end
 
     puts Colors.green("✓ Generated static HTML site")
