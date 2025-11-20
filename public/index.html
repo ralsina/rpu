@@ -326,14 +326,14 @@
 
             g = svg.append('g');
 
-            // Define arrow marker
+            // Define arrow marker (2x larger)
             svg.append('defs').append('marker')
                 .attr('id', 'arrowhead')
                 .attr('viewBox', '-10 -10 20 20')
                 .attr('refX', 25)
                 .attr('refY', 0)
-                .attr('markerWidth', 8)
-                .attr('markerHeight', 8)
+                .attr('markerWidth', 16)  // 2x larger
+                .attr('markerHeight', 16) // 2x larger
                 .attr('orient', 'auto')
                 .append('path')
                 .attr('d', 'M-10,-5L0,0L-10,5')
@@ -392,6 +392,13 @@
                     event.stopPropagation();
                     focusNode(d);
                 })
+                .on('dblclick', (event, d) => {
+                    event.stopPropagation();
+                    // Open repository URLs for any node that has one
+                    if (d.url) {
+                        window.open(d.url, '_blank');
+                    }
+                })
                 .on('mouseover', showTooltip)
                 .on('mouseout', hideTooltip);
 
@@ -413,7 +420,8 @@
                     }
                     node.attr('points', points.join(' '))
                         .attr('stroke', '#4682b4')
-                        .attr('stroke-width', '2px');
+                        .attr('stroke-width', '2px')
+                        .attr('fill', '#87ceeb'); // Ensure blue color for external dependencies
                 } else if (d.fork) {
                     // Hexagon for forks (minimum size)
                     const size = minSize;
@@ -577,9 +585,10 @@
                 label.style('opacity', 1);
             }
 
-            // If clicking the same node, deselect
+            // If clicking the same node, deselect and reset zoom
             if (selectedNode === d) {
                 selectedNode = null;
+                resetZoom();
                 return;
             }
 
@@ -591,6 +600,7 @@
             connectedNodes.add(d.id); // Add the selected node itself
 
             const links = window.graphLinks || [];
+            const nodes = window.graphNodes || [];
 
             // Find all connections
             links.forEach(l => {
@@ -629,6 +639,35 @@
                 const labelId = typeof l === 'object' ? l.id : l;
                 return connectedNodes.has(labelId);
             }).style('opacity', 1);
+
+            // Zoom to fit the connected nodes
+            const connectedNodeData = nodes.filter(n => connectedNodes.has(n.id));
+            if (connectedNodeData.length > 0) {
+                const padding = 50; // Add some padding around the nodes
+                const minX = Math.min(...connectedNodeData.map(n => n.x)) - padding;
+                const maxX = Math.max(...connectedNodeData.map(n => n.x)) + padding;
+                const minY = Math.min(...connectedNodeData.map(n => n.y)) - padding;
+                const maxY = Math.max(...connectedNodeData.map(n => n.y)) + padding;
+
+                const width = maxX - minX;
+                const height = maxY - minY;
+                const centerX = (minX + maxX) / 2;
+                const centerY = (minY + maxY) / 2;
+
+                const svgWidth = +svg.attr('width');
+                const svgHeight = +svg.attr('height');
+                const scale = Math.min(svgWidth / width, svgHeight / height) * 0.9; // 0.9 for slight extra padding
+
+                const transform = d3.zoomIdentity
+                    .translate(svgWidth / 2, svgHeight / 2)
+                    .scale(scale)
+                    .translate(-centerX, -centerY);
+
+                svg.transition().duration(750).call(
+                    d3.zoom().transform,
+                    transform
+                );
+            }
         }
 
         function resetZoom() {
