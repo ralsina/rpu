@@ -335,8 +335,19 @@ class ProjectDataCollector
     dependencies = [] of String
 
     if shard_data["dependencies"]?
-      shard_data["dependencies"].as_h.each_key do |dep|
-        dependencies << dep.to_s
+      deps_data = shard_data["dependencies"]
+      # Handle different YAML structures safely
+      case deps_data
+      when .as_h?
+        deps_data.as_h.each_key do |dep|
+          dependencies << dep.to_s
+        end
+      when .as_a?
+        deps_data.as_a.each do |dep|
+          dependencies << dep.to_s
+        end
+      else
+        # Skip if we can't parse the dependencies structure
       end
     end
 
@@ -347,40 +358,49 @@ class ProjectDataCollector
   private def extract_dependency_url(shard_data : YAML::Any, dep_name : String) : String?
     return nil unless shard_data["dependencies"]?
 
-    deps = shard_data["dependencies"].as_h
-    return nil unless deps[dep_name]?
+    deps_data = shard_data["dependencies"]
+    return nil unless deps_data
 
-    dep_config = deps[dep_name]
-
-    # Handle different dependency formats
-    case dep_config
+    # Handle different YAML structures safely
+    case deps_data
     when .as_h?
-      dep_hash = dep_config.as_h
-      if dep_hash["github"]?
-        github_path = dep_hash["github"].as_s
-        return "https://github.com/#{github_path}"
-      elsif dep_hash["git"]?
-        git_url = dep_hash["git"].as_s
-        if git_url.includes?("github.com")
-          # Extract user/repo from git URL
-          match = git_url.match(/github\.com\/([^\/]+\/[^\/\s\.]+)/)
-          return "https://github.com/#{match[1]}" if match
+      deps = deps_data.as_h
+      return nil unless deps[dep_name]?
+
+      dep_config = deps[dep_name]
+
+      # Handle different dependency formats
+      case dep_config
+      when .as_h?
+        dep_hash = dep_config.as_h
+        if dep_hash["github"]?
+          github_path = dep_hash["github"]?.try(&.as_s)
+          return "https://github.com/#{github_path}" if github_path
+        elsif dep_hash["git"]?
+          git_url = dep_hash["git"]?.try(&.as_s)
+          if git_url && git_url.includes?("github.com")
+            # Extract user/repo from git URL
+            match = git_url.match(/github\.com\/([^\/]+\/[^\/\s\.]+)/)
+            return "https://github.com/#{match[1]}" if match
+          end
+        end
+      when .as_s?
+        # Simple dependency name, try common patterns
+        common_patterns = [
+          "crystal-lang/#{dep_name}",
+          "luckyframework/#{dep_name}",
+          "ivorg/#{dep_name}",
+          "straight-shoota/#{dep_name}",
+          "Sija/#{dep_name}",
+        ]
+
+        common_patterns.each do |pattern|
+          repo_info = get_repo_info(pattern)
+          return "https://github.com/#{pattern}" if repo_info
         end
       end
-    when .as_s?
-      # Simple dependency name, try common patterns
-      common_patterns = [
-        "crystal-lang/#{dep_name}",
-        "luckyframework/#{dep_name}",
-        "ivorg/#{dep_name}",
-        "straight-shoota/#{dep_name}",
-        "Sija/#{dep_name}",
-      ]
-
-      common_patterns.each do |pattern|
-        repo_info = get_repo_info(pattern)
-        return "https://github.com/#{pattern}" if repo_info
-      end
+    else
+      # Skip if dependencies structure is not parseable
     end
 
     nil
