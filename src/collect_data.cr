@@ -476,7 +476,11 @@ class ProjectDataCollector
 
     # Get Crystal LOC from GitHub API language statistics
     languages = get_repo_languages(repo)
-    project.loc = languages.try(&.["Crystal"]?.try(&.as_i)) || repo_info["size"]?.try(&.as_i?) || 0
+    crystal_bytes = languages.try(&.["Crystal"]?.try(&.as_i)) || 0
+
+    # Convert bytes to approximate LOC (average line ~ 40 characters including whitespace)
+    # This is an approximation but much more accurate than using repository size
+    project.loc = crystal_bytes > 0 ? (crystal_bytes / 40).to_i32 : (repo_info["size"]?.try(&.as_i?) || 0)
 
     @projects << project
 
