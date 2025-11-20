@@ -342,7 +342,7 @@
             // Create force simulation
             simulation = d3.forceSimulation()
                 .force('link', d3.forceLink().id(d => d.shard_name).distance(80))
-                .force('charge', d3.forceManyBody().strength(-400))
+                .force('charge', d3.forceManyBody().strength(-200))  // Reduced repulsion to keep nodes closer
                 .force('center', d3.forceCenter(width / 2, height / 2))
                 .force('collision', d3.forceCollide().radius(d => {
                     const minSize = 12;
@@ -385,7 +385,7 @@
                     }
                 })
                 .attr('class', d => d.fork ? 'node fork' : d.external ? 'node external' : 'node')
-                .attr('fill', d => getNodeColor(d))
+                .attr('fill', d => d.external ? '#87ceeb' : getNodeColor(d))
                 .attr('stroke', '#fff')
                 .attr('stroke-width', d => d.fork ? '3px' : '2px')
                 .on('click', (event, d) => {
@@ -690,12 +690,29 @@
         });
 
         function updateStats() {
-            const internalProjects = projects.filter(p => !p.external);
-            const totalLOC = internalProjects.reduce((sum, p) => sum + (p.loc || 0), 0);
-            const totalDeps = internalProjects.reduce((sum, p) => sum + p.dependencies.length, 0);
+            // Filter to only user's actual Crystal projects (not external dependencies or forks)
+            const userProjects = projects.filter(p => !p.external && !p.fork);
+            const totalLOC = userProjects.reduce((sum, p) => sum + (p.loc || 0), 0);
+            const totalDeps = userProjects.reduce((sum, p) => sum + p.dependencies.length, 0);
 
-            document.getElementById('project-count').textContent = internalProjects.length.toLocaleString();
-            document.getElementById('loc-count').textContent = Math.round(totalLOC / 1000) + 'k';
+            console.log('Total projects:', projects.length);
+            console.log('User projects:', userProjects.length);
+            console.log('External projects:', projects.filter(p => p.external).length);
+            console.log('Fork projects:', projects.filter(p => p.fork).length);
+            console.log('Total LOC:', totalLOC);
+
+            document.getElementById('project-count').textContent = userProjects.length.toLocaleString();
+
+            // Format LOC display - use k for thousands, M for millions
+            let locText;
+            if (totalLOC >= 1000000) {
+                locText = (totalLOC / 1000000).toFixed(1) + 'M';
+            } else if (totalLOC >= 1000) {
+                locText = Math.round(totalLOC / 1000) + 'k';
+            } else {
+                locText = totalLOC.toLocaleString();
+            }
+            document.getElementById('loc-count').textContent = locText;
             document.getElementById('dep-count').textContent = totalDeps.toLocaleString();
         }
 
