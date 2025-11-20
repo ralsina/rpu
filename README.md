@@ -30,32 +30,45 @@ The GitHub Actions workflow will automatically:
 - Build a static visualization
 - Deploy to GitHub Pages
 
+**❗ If GitHub Actions fails**, make sure you've enabled GitHub Pages correctly in step 2. The workflow requires GitHub Pages to be enabled with "GitHub Actions" as the source.
+
 That's it! Your visualization will be live at `https://<your-username>.github.io/rpu/`
 
 ## 🌟 **Features**
 
 ### **Interactive Visualization**
-- **Click nodes** - Opens project repositories in new tabs
+- **Click nodes** - Focus on node and highlight connected dependencies (subnet visualization)
 - **Hover tooltips** - Shows LOC, description, fork status, last modified date
 - **Zoom/Pan** - Mouse wheel and drag navigation
-- **Toggle labels** - Show/hide project names
-- **Toggle external** - Show/hide third-party dependencies
+- **Reset Zoom** - Reset view and clear selection
+- **Labels** - Project names are shown by default for better readability
 
 ### **Visual Encoding**
-- **Node size** - Lines of Crystal code (larger = more code)
+- **Node size** - Lines of Crystal code (scaled between min/max for better visibility)
+  - Regular projects: Sized based on LOC (12-30 units)
+  - Forks and external dependencies: Fixed minimum size
 - **Node color** - Activity level:
   - 🟢 Green: Modified within last month (actively maintained)
-  - 🟡 Yellow-green: Modified within 3 months (recently active)
-  - 🟠 Orange: Modified within 6 months (moderately active)
-  - 🔶 Dark orange: Modified within 1 year (inactive)
+  - 🟡 Light green: Modified within 3 months (recently active)
+  - 🟠 Yellow: Modified within 6 months (moderately active)
+  - 🔶 Orange: Modified within 1 year (inactive)
   - 🔴 Red: Modified over 1 year ago (stale)
+  - ⚫ Gray: Unknown last modified date
 - **Node shapes**:
-  - 🟢 Circles: Your original projects
-  - 🔄 Orange border: Forked projects
-  - 🔵 Triangles: External Crystal dependencies
-- **Lines**:
+  - 🟢 Circles: Your original Crystal projects
+  - 🔄 Hexagons: Forked projects (orange border)
+  - 🔵 Pentagons: External Crystal dependencies
+- **Lines with arrows**:
   - Solid: Internal dependencies between your projects
   - Dashed: External dependencies to third-party libraries
+  - Arrow direction: Shows dependency flow
+
+### **Subnet Highlighting**
+When you click on any node:
+- **Selected node** remains fully visible
+- **Connected nodes** (dependencies) are highlighted
+- **Unrelated nodes** are dimmed for clarity
+- **Click again** or **click background** to deselect
 
 ### **Smart Data Collection**
 - **GitHub API Integration**: Uses GitHub's native APIs for accurate data
@@ -96,9 +109,8 @@ The workflow automatically adapts to your repository:
 - **Depth**: 3 levels of dependency recursion
 - **Projects**: Up to 500 projects total
 
-## 🛠️ **Customization**
+## 🛠️ **Local Development**
 
-### **Local Development**
 For testing or customizing the data collection:
 
 ```bash
@@ -109,12 +121,42 @@ cd rpu
 # Install dependencies
 make setup
 
-# Test data collection locally
-make collect ARGS='--github-user=<your-username>'
+# Build complete static site (recommended)
+make build-static ARGS='--github-user=<your-username> --max-projects=10 --max-depth=1'
 
-# Build binary
-make build
+# Serve locally for development
+make serve
+# Open http://localhost:8000 in your browser
+
+# Or just collect data (advanced usage)
+make collect ARGS='--github-user=<your-username>'
 ```
+
+### **Template-Based Architecture**
+
+The visualization uses a template-based system:
+
+- **`public/index.html`** - Main HTML template with embedded CSS and JavaScript
+- **`public/style.css`** - Standalone CSS (optional, for development)
+- **`public/visualization.js`** - Standalone JavaScript (optional, for development)
+- **Self-contained deployment** - All CSS/JS embedded in final HTML for GitHub Pages
+
+### **Troubleshooting**
+
+**GitHub Actions Failing:**
+- Make sure GitHub Pages is enabled with "GitHub Actions" as the source
+- Check that your fork has proper GitHub Actions permissions enabled
+- View the Actions tab in your repository for detailed error logs
+
+**Local Development Issues:**
+- **Browser cache**: If you see JavaScript errors, try `Ctrl+F5` (hard refresh) to clear cache
+- **Missing dependencies**: Run `make setup` to install Crystal shards
+- **Build errors**: Ensure Crystal is installed and run `make build`
+
+**Visualization Issues:**
+- **Node highlighting not working**: Clear browser cache with `Ctrl+F5`
+- **Labels missing**: Check browser console for JavaScript errors
+- **Arrow heads not visible**: Zoom in to see dependency arrows more clearly
 
 ### **Environment Variables**
 Override defaults by setting environment variables:

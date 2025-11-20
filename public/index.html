@@ -5,46 +5,674 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crystal Projects Visualization</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
-    <link rel="stylesheet" href="style.css">
     <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #0d1117;
+            color: #c9d1d9;
+            overflow: hidden;
+        }
+        .app-container {
+            display: flex;
+            height: 100vh;
+        }
+        .sidebar {
+            width: 300px;
+            background-color: #161b22;
+            border-right: 1px solid #30363d;
+            padding: 20px;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+        .header {
+            text-align: center;
+            padding: 20px;
+            background-color: #0d1117;
+            border-bottom: 1px solid #30363d;
+        }
+        .header h1 {
+            margin: 0 0 10px 0;
+            color: #58a6ff;
+            font-size: 24px;
+        }
+        .header p {
+            margin: 0;
+            color: #8b949e;
+            font-size: 14px;
+        }
+        .stats {
+            background-color: #0d1117;
+            padding: 15px;
+            border-bottom: 1px solid #30363d;
+            display: flex;
+            justify-content: space-around;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .stat {
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #58a6ff;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #8b949e;
+            margin-top: 4px;
+        }
+        .controls {
+            margin-bottom: 20px;
+        }
+        .controls button {
+            background-color: #21262d;
+            color: #c9d1d9;
+            border: 1px solid #30363d;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 8px;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+        .controls button:hover {
+            background-color: #30363d;
+        }
+        .legend {
+            background-color: #21262d;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .legend h3 {
+            margin: 0 0 12px 0;
+            color: #c9d1d9;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 12px;
+            color: #8b949e;
+        }
+        .legend-shape {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+        .visualization {
+            flex: 1;
+            background: #0d1117;
+            position: relative;
+            overflow: hidden;
+        }
+        #graph {
+            width: 100%;
+            height: 100%;
+            cursor: grab;
+        }
+        #graph:active {
+            cursor: grabbing;
+        }
+        .tooltip {
+            position: absolute;
+            padding: 12px;
+            background: rgba(13, 17, 23, 0.95);
+            color: #c9d1d9;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            pointer-events: none;
+            font-size: 12px;
+            max-width: 250px;
+            z-index: 1000;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+        }
+        .last-updated {
+            text-align: center;
+            color: #8b949e;
+            font-size: 12px;
+            padding: 10px;
+            background-color: #0d1117;
+            border-top: 1px solid #30363d;
+        }
+        .node {
+            cursor: pointer;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+        .node:hover {
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5)) brightness(1.2);
+        }
+        .link {
+            stroke: #30363d;
+            stroke-opacity: 0.7;
+            cursor: default;
+        }
+        .arrow {
+            fill: #30363d;
+            stroke-opacity: 0.7;
+        }
+        .fork {
+            stroke: #ff6b35 !important;
+            stroke-width: 3px;
+            filter: drop-shadow(0 0 8px rgba(255, 107, 53, 0.5));
+        }
+        .external {
+            fill: #87ceeb !important;
+            stroke: #4682b4 !important;
+            filter: drop-shadow(0 0 8px rgba(135, 206, 235, 0.5));
+        }
+        .label {
+            fill: #c9d1d9;
+            font-size: 11px;
+            font-weight: 500;
+            pointer-events: none;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>Crystal Projects Visualization</h1>
-            <p>Interactive dependency graph of Crystal ecosystem projects</p>
-        </div>
-
-        <div class="stats" id="stats">
-            <div class="stat">
-                <div class="stat-value" id="project-count">0</div>
-                <div class="stat-label">Projects</div>
+    <div class="app-container">
+        <div class="sidebar">
+            <div class="header">
+                <h1>Crystal Projects Visualization</h1>
+                <p>Interactive dependency graph</p>
             </div>
-            <div class="stat">
-                <div class="stat-value" id="loc-count">0</div>
-                <div class="stat-label">Lines of Code</div>
+
+            <div class="controls">
+                <button onclick="resetZoom()">Reset Zoom</button>
             </div>
-            <div class="stat">
-                <div class="stat-value" id="dep-count">0</div>
-                <div class="stat-label">Dependencies</div>
+
+            <div class="legend">
+                <h3>Node Shapes</h3>
+                <div class="legend-item">
+                    <svg class="legend-shape" viewBox="0 0 20 20">
+                        <circle cx="10" cy="10" r="8" fill="#22c55e" stroke="#fff" stroke-width="1"/>
+                    </svg>
+                    <span>Crystal Project (Recent)</span>
+                </div>
+                <div class="legend-item">
+                    <svg class="legend-shape" viewBox="0 0 20 20">
+                        <polygon points="10,2 18,7 18,13 10,18 2,13 2,7" fill="#84cc16" stroke="#fff" stroke-width="1"/>
+                    </svg>
+                    <span>Forked Project</span>
+                </div>
+                <div class="legend-item">
+                    <svg class="legend-shape" viewBox="0 0 20 20">
+                        <polygon points="10,3 17,7.5 14.5,15 5.5,15 3,7.5" fill="#87ceeb" stroke="#4682b4" stroke-width="1"/>
+                    </svg>
+                    <span>External Dependency</span>
+                </div>
+
+                <h3 style="margin-top: 15px;">Node Colors</h3>
+                <div class="legend-item">
+                    <svg class="legend-shape" viewBox="0 0 20 20">
+                        <circle cx="10" cy="10" r="6" fill="#22c55e"/>
+                    </svg>
+                    <span>Modified &lt; 30 days</span>
+                </div>
+                <div class="legend-item">
+                    <svg class="legend-shape" viewBox="0 0 20 20">
+                        <circle cx="10" cy="10" r="6" fill="#84cc16"/>
+                    </svg>
+                    <span>Modified &lt; 90 days</span>
+                </div>
+                <div class="legend-item">
+                    <svg class="legend-shape" viewBox="0 0 20 20">
+                        <circle cx="10" cy="10" r="6" fill="#eab308"/>
+                    </svg>
+                    <span>Modified &lt; 180 days</span>
+                </div>
+                <div class="legend-item">
+                    <svg class="legend-shape" viewBox="0 0 20 20">
+                        <circle cx="10" cy="10" r="6" fill="#f97316"/>
+                    </svg>
+                    <span>Modified &lt; 365 days</span>
+                </div>
+                <div class="legend-item">
+                    <svg class="legend-shape" viewBox="0 0 20 20">
+                        <circle cx="10" cy="10" r="6" fill="#ef4444"/>
+                    </svg>
+                    <span>Modified &gt; 1 year</span>
+                </div>
+                <div class="legend-item">
+                    <svg class="legend-shape" viewBox="0 0 20 20">
+                        <circle cx="10" cy="10" r="6" fill="#999"/>
+                    </svg>
+                    <span>Unknown last modified</span>
+                </div>
             </div>
         </div>
 
-        <div class="controls">
-            <button onclick="toggleLabels()">Toggle Labels</button>
-            <button onclick="resetZoom()">Reset Zoom</button>
-            <button onclick="toggleExternalDeps()">Toggle External</button>
-        </div>
+        <div class="main-content">
+            <div class="stats" id="stats">
+                <div class="stat">
+                    <div class="stat-value" id="project-count">0</div>
+                    <div class="stat-label">Projects</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="loc-count">0</div>
+                    <div class="stat-label">Lines of Code</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="dep-count">0</div>
+                    <div class="stat-label">Dependencies</div>
+                </div>
+            </div>
 
-        <div class="visualization">
-            <div id="graph"></div>
-        </div>
+            <div class="visualization">
+                <div id="graph"></div>
+            </div>
 
-        <div class="last-updated" id="last-updated"></div>
+            <div class="last-updated" id="last-updated"></div>
+        </div>
     </div>
 
     <div class="tooltip" id="tooltip" style="opacity: 0;"></div>
 
-    <script src="visualization.js"></script>
+    <script>
+        let projects = [];
+        let simulation;
+        let svg, g, link, node, label, arrows;
+        let showLabels = true;
+        let showExternal = true;
+        let selectedNode = null;
+
+        // Load and parse project data
+        fetch('projects.json')
+            .then(response => response.json())
+            .then(data => {
+                projects = data;
+                initVisualization();
+            })
+            .catch(error => {
+                console.error('Error loading project data:', error);
+                document.getElementById('graph').innerHTML =
+                    '<p style="text-align: center; padding: 50px;">Error loading project data. Please check back later.</p>';
+            });
+
+        function initVisualization() {
+            const container = d3.select('#graph');
+            const width = container.node().getBoundingClientRect().width;
+            const height = container.node().getBoundingClientRect().height;
+
+            // Create SVG
+            svg = container.append('svg')
+                .attr('width', width)
+                .attr('height', height);
+
+            // Add zoom behavior
+            const zoom = d3.zoom()
+                .scaleExtent([0.1, 5])
+                .on('zoom', (event) => {
+                    g.attr('transform', event.transform);
+                });
+
+            svg.call(zoom);
+
+            g = svg.append('g');
+
+            // Define arrow marker
+            svg.append('defs').append('marker')
+                .attr('id', 'arrowhead')
+                .attr('viewBox', '-10 -10 20 20')
+                .attr('refX', 25)
+                .attr('refY', 0)
+                .attr('markerWidth', 8)
+                .attr('markerHeight', 8)
+                .attr('orient', 'auto')
+                .append('path')
+                .attr('d', 'M-10,-5L0,0L-10,5')
+                .attr('class', 'arrow');
+
+            // Create force simulation
+            simulation = d3.forceSimulation()
+                .force('link', d3.forceLink().id(d => d.shard_name).distance(80))
+                .force('charge', d3.forceManyBody().strength(-400))
+                .force('center', d3.forceCenter(width / 2, height / 2))
+                .force('collision', d3.forceCollide().radius(d => {
+                    const minSize = 12;
+                    const maxSize = 30;
+                    if (d.external || d.fork) {
+                        return minSize + 8; // Minimum size for forks and external
+                    }
+                    // Scale regular projects based on LOC between min and max
+                    const locSize = Math.sqrt(Math.max(d.loc || 100, 100));
+                    const scaledSize = minSize + (locSize / 2);
+                    return Math.min(Math.max(scaledSize, minSize), maxSize) + 8;
+                }));
+
+            // Process nodes and links
+            const { nodes, links } = processGraphData(projects);
+
+            // Create links with arrows
+            link = g.append('g')
+                .selectAll('line')
+                .data(links)
+                .enter().append('line')
+                .attr('class', 'link')
+                .attr('stroke-dasharray', d => d.source.external || d.target.external ? '5,5' : null)
+                .attr('marker-end', 'url(#arrowhead)');
+
+            // Create nodes with different shapes
+            node = g.append('g')
+                .selectAll('.node')
+                .data(nodes)
+                .enter().append(d => {
+                    if (d.external) {
+                        // Create pentagon for external dependencies (bigger)
+                        return document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+                    } else if (d.fork) {
+                        // Create hexagon for forks
+                        return document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+                    } else {
+                        // Create circle for regular projects
+                        return document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    }
+                })
+                .attr('class', d => d.fork ? 'node fork' : d.external ? 'node external' : 'node')
+                .attr('fill', d => getNodeColor(d))
+                .attr('stroke', '#fff')
+                .attr('stroke-width', d => d.fork ? '3px' : '2px')
+                .on('click', (event, d) => {
+                    event.stopPropagation();
+                    focusNode(d);
+                })
+                .on('mouseover', showTooltip)
+                .on('mouseout', hideTooltip);
+
+            // Set shape-specific attributes
+            node.each(function(d) {
+                const node = d3.select(this);
+                const minSize = 12;
+                const maxSize = 30;
+
+                if (d.external) {
+                    // Pentagon for external dependencies (minimum size)
+                    const size = minSize;
+                    const points = [];
+                    for (let i = 0; i < 5; i++) {
+                        const angle = (i * 72 - 90) * Math.PI / 180;
+                        const x = size * Math.cos(angle);
+                        const y = size * Math.sin(angle);
+                        points.push(`${x},${y}`);
+                    }
+                    node.attr('points', points.join(' '))
+                        .attr('stroke', '#4682b4')
+                        .attr('stroke-width', '2px');
+                } else if (d.fork) {
+                    // Hexagon for forks (minimum size)
+                    const size = minSize;
+                    const points = [];
+                    for (let i = 0; i < 6; i++) {
+                        const angle = (i * 60) * Math.PI / 180;
+                        const x = size * Math.cos(angle);
+                        const y = size * Math.sin(angle);
+                        points.push(`${x},${y}`);
+                    }
+                    node.attr('points', points.join(' '))
+                        .attr('stroke', '#ff6b35')
+                        .attr('stroke-width', '3px');
+                } else {
+                    // Circle for regular projects (scaled based on LOC)
+                    const locSize = Math.sqrt(Math.max(d.loc || 100, 100));
+                    const scaledSize = minSize + (locSize / 2);
+                    const radius = Math.min(Math.max(scaledSize, minSize), maxSize);
+                    node.attr('r', radius);
+                }
+            });
+
+            // Create labels (visible by default for all nodes)
+            label = g.append('g')
+                .selectAll('text')
+                .data(nodes)
+                .enter().append('text')
+                .text(d => d.name)
+                .attr('class', 'label')
+                .style('opacity', 1);
+
+            // Start simulation
+            simulation.nodes(nodes)
+                .on('tick', ticked);
+
+            simulation.force('link').links(links);
+
+            // Store links globally for access in focusNode function
+            window.graphLinks = links;
+            window.graphNodes = nodes;
+
+            // Update stats
+            updateStats();
+            updateLastUpdated();
+        }
+
+        function processGraphData(projects) {
+            const nodes = [];
+            const links = [];
+            const nodeMap = new Map();
+
+            // Add project nodes
+            projects.forEach(project => {
+                const node = {
+                    id: project.shard_name,
+                    name: project.name,
+                    shard_name: project.shard_name,
+                    loc: project.loc,
+                    description: project.description,
+                    url: project.url,
+                    fork: project.fork,
+                    external: project.external,
+                    last_modified: project.last_modified
+                };
+                nodes.push(node);
+                nodeMap.set(project.shard_name, node);
+            });
+
+            // Add dependency links
+            projects.forEach(project => {
+                project.dependencies.forEach(dep => {
+                    const target = nodeMap.get(dep);
+                    if (target) {
+                        links.push({
+                            source: project.shard_name,
+                            target: dep,
+                            value: 1
+                        });
+                    } else if (showExternal) {
+                        // Add external dependency node if it doesn't exist
+                        if (!nodeMap.has(dep)) {
+                            const externalNode = {
+                                id: dep,
+                                name: dep,
+                                shard_name: dep,
+                                external: true,
+                                loc: 0,
+                                description: `External dependency: ${dep}`,
+                                url: `https://github.com/search?q=${dep}+language%3ACrystal`
+                            };
+                            nodes.push(externalNode);
+                            nodeMap.set(dep, externalNode);
+                        }
+                        links.push({
+                            source: project.shard_name,
+                            target: dep,
+                            value: 1
+                        });
+                    }
+                });
+            });
+
+            return { nodes, links };
+        }
+
+        function getNodeColor(node) {
+            if (node.external) return '#87ceeb';
+
+            if (!node.last_modified) return '#999';
+
+            const now = new Date();
+            const modified = new Date(node.last_modified);
+            const daysDiff = (now - modified) / (1000 * 60 * 60 * 24);
+
+            if (daysDiff < 30) return '#22c55e';      // Green - recent
+            if (daysDiff < 90) return '#84cc16';      // Light green
+            if (daysDiff < 180) return '#eab308';     // Yellow
+            if (daysDiff < 365) return '#f97316';     // Orange
+            return '#ef4444';                         // Red - old
+        }
+
+        function ticked() {
+            link
+                .attr('x1', d => d.source.x)
+                .attr('y1', d => d.source.y)
+                .attr('x2', d => d.target.x)
+                .attr('y2', d => d.target.y);
+
+            node.attr('transform', d => `translate(${d.x},${d.y})`);
+
+            label
+                .attr('x', d => d.x)
+                .attr('y', d => d.y);
+        }
+
+        function showTooltip(event, d) {
+            const tooltip = d3.select('#tooltip');
+            tooltip.transition().duration(200).style('opacity', .9);
+            tooltip.html(`
+                <strong>${d.name}</strong><br/>
+                ${d.description || 'No description'}<br/>
+                ${d.loc ? `LOC: ${d.loc.toLocaleString()}<br/>` : ''}
+                ${d.fork ? '🔄 Fork<br/>' : ''}
+                ${d.external ? '📦 External dependency<br/>' : ''}
+                ${d.last_modified ? `Modified: ${new Date(d.last_modified).toLocaleDateString()}<br/>` : ''}
+                ${!d.external ? '<em>Click to open repository</em>' : ''}
+            `)
+            .style('left', (event.pageX + 10) + 'px')
+            .style('top', (event.pageY - 28) + 'px');
+        }
+
+        function hideTooltip() {
+            d3.select('#tooltip').transition().duration(500).style('opacity', 0);
+        }
+
+        function focusNode(d) {
+            // Reset previous selection
+            if (selectedNode) {
+                node.style('opacity', 1);
+                link.style('opacity', 0.7);
+                label.style('opacity', 1);
+            }
+
+            // If clicking the same node, deselect
+            if (selectedNode === d) {
+                selectedNode = null;
+                return;
+            }
+
+            selectedNode = d;
+
+            // Get connected nodes and links using globally stored data
+            const connectedNodes = new Set();
+            const connectedLinks = new Set();
+            connectedNodes.add(d.id); // Add the selected node itself
+
+            const links = window.graphLinks || [];
+
+            // Find all connections
+            links.forEach(l => {
+                const sourceId = typeof l.source === 'object' ? l.source.id : l.source;
+                const targetId = typeof l.target === 'object' ? l.target.id : l.target;
+
+                if (sourceId === d.id) {
+                    connectedNodes.add(targetId);
+                    connectedLinks.add(l);
+                } else if (targetId === d.id) {
+                    connectedNodes.add(sourceId);
+                    connectedLinks.add(l);
+                }
+            });
+
+            console.log('Selected node:', d.id);
+            console.log('Connected nodes:', Array.from(connectedNodes));
+            console.log('Connected links:', connectedLinks.size);
+
+            // Dim all elements first
+            node.style('opacity', 0.2);
+            link.style('opacity', 0.1);
+            label.style('opacity', 0.2);
+
+            // Highlight selected node and connections
+            node.filter(function(n) {
+                const nodeId = typeof n === 'object' ? n.id : n;
+                return connectedNodes.has(nodeId);
+            }).style('opacity', 1);
+
+            link.filter(function(l) {
+                return connectedLinks.has(l);
+            }).style('opacity', 1);
+
+            label.filter(function(l) {
+                const labelId = typeof l === 'object' ? l.id : l;
+                return connectedNodes.has(labelId);
+            }).style('opacity', 1);
+        }
+
+        function resetZoom() {
+            svg.transition().duration(750).call(
+                d3.zoom().transform,
+                d3.zoomIdentity
+            );
+            // Reset node focus
+            node.style('opacity', 1);
+            link.style('opacity', 0.7);
+            label.style('opacity', 1);
+            selectedNode = null;
+        }
+
+        // Add click handler to background to deselect
+        d3.select('#graph').on('click', function(event) {
+            if (event.target === this) {
+                resetZoom();
+            }
+        });
+
+        function updateStats() {
+            const internalProjects = projects.filter(p => !p.external);
+            const totalLOC = internalProjects.reduce((sum, p) => sum + (p.loc || 0), 0);
+            const totalDeps = internalProjects.reduce((sum, p) => sum + p.dependencies.length, 0);
+
+            document.getElementById('project-count').textContent = internalProjects.length.toLocaleString();
+            document.getElementById('loc-count').textContent = Math.round(totalLOC / 1000) + 'k';
+            document.getElementById('dep-count').textContent = totalDeps.toLocaleString();
+        }
+
+        function updateLastUpdated() {
+            const now = new Date();
+            document.getElementById('last-updated').textContent =
+                `Last updated: ${now.toLocaleDateString()} at ${now.toLocaleTimeString()}`;
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            if (projects.length > 0) {
+                d3.select('#graph').selectAll('*').remove();
+                initVisualization();
+            }
+        });
+    </script>
 </body>
 </html>
