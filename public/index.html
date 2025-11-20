@@ -209,8 +209,8 @@
             cursor: default;
         }
         .arrow {
-            fill: #30363d;
-            stroke-opacity: 0.7;
+            fill: #8b949e;
+            stroke-opacity: 0.8;
         }
         .fork {
             stroke: #ff6b35 !important;
@@ -347,6 +347,65 @@
         let searchResults = new Set();
         let currentSearch = '';
 
+        // Calculate arrow path with proper positioning based on node sizes
+        function calculateArrowPath(d) {
+            const source = d.source;
+            const target = d.target;
+
+            // Get node radii based on node type and size
+            function getNodeRadius(node) {
+                const minSize = 12;
+                const maxSize = 30;
+                let radius;
+
+                if (node.external || node.fork) {
+                    radius = minSize;
+                } else {
+                    const locRange = 500000;
+                    const loc = Math.min(node.loc, locRange);
+                    radius = minSize + (maxSize - minSize) * (loc / locRange);
+                }
+                return radius;
+            }
+
+            const sourceRadius = getNodeRadius(source);
+            const targetRadius = getNodeRadius(target);
+
+            // Calculate the direction vector
+            const dx = target.x - source.x;
+            const dy = target.y - source.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance === 0) return '';
+
+            // Normalize the direction vector
+            const unitX = dx / distance;
+            const unitY = dy / distance;
+
+            // Calculate start and end points (just touching the node edges)
+            const startX = source.x + unitX * sourceRadius;
+            const startY = source.y + unitY * sourceRadius;
+            const endX = target.x - unitX * targetRadius;
+            const endY = target.y - unitY * targetRadius;
+
+            // Calculate arrow head (8px long, 4px wide)
+            const arrowLength = 8;
+            const arrowWidth = 4;
+
+            // Arrow points back towards the source
+            const arrowTipX = endX;
+            const arrowTipY = endY;
+            const arrowBaseX = endX - unitX * arrowLength;
+            const arrowBaseY = endY - unitY * arrowLength;
+
+            // Calculate perpendicular vector for arrow width
+            const perpX = -unitY * (arrowWidth / 2);
+            const perpY = unitX * (arrowWidth / 2);
+
+            // Build arrow path
+            return `M ${arrowTipX} ${arrowTipY} L ${arrowBaseX + perpX} ${arrowBaseY + perpY} L ${arrowBaseX - perpX} ${arrowBaseY - perpY} Z`;
+        }
+
         // Load and parse project data
         fetch('projects.json')
             .then(response => response.json())
@@ -381,19 +440,7 @@
 
             g = svg.append('g');
 
-            // Define arrow marker (2x larger)
-            svg.append('defs').append('marker')
-                .attr('id', 'arrowhead')
-                .attr('viewBox', '-10 -10 20 20')
-                .attr('refX', 25)
-                .attr('refY', 0)
-                .attr('markerWidth', 16)  // 2x larger
-                .attr('markerHeight', 16) // 2x larger
-                .attr('orient', 'auto')
-                .append('path')
-                .attr('d', 'M-10,-5L0,0L-10,5')
-                .attr('class', 'arrow');
-
+        
             // Create force simulation
             simulation = d3.forceSimulation()
                 .force('link', d3.forceLink().id(d => d.shard_name).distance(80))
@@ -414,14 +461,21 @@
             // Process nodes and links
             const { nodes, links } = processGraphData(projects);
 
-            // Create links with arrows
+            // Create links
             link = g.append('g')
                 .selectAll('line')
                 .data(links)
                 .enter().append('line')
                 .attr('class', 'link')
-                .attr('stroke-dasharray', d => d.source.external || d.target.external ? '5,5' : null)
-                .attr('marker-end', 'url(#arrowhead)');
+                .attr('stroke-dasharray', d => d.source.external || d.target.external ? '5,5' : null);
+
+            // Create arrow heads as separate elements for better control
+            arrows = g.append('g')
+                .selectAll('path')
+                .data(links)
+                .enter().append('path')
+                .attr('class', 'arrow')
+                .attr('d', calculateArrowPath);
 
             // Create nodes with different shapes
             node = g.append('g')
@@ -599,11 +653,59 @@
         }
 
         function ticked() {
+            // Function to get node radius for positioning
+            function getNodeRadius(node) {
+                const minSize = 12;
+                const maxSize = 30;
+                let radius;
+
+                if (node.external || node.fork) {
+                    radius = minSize;
+                } else {
+                    const locRange = 500000;
+                    const loc = Math.min(node.loc, locRange);
+                    radius = minSize + (maxSize - minSize) * (loc / locRange);
+                }
+                return radius;
+            }
+
+            // Update links with proper positioning
             link
-                .attr('x1', d => d.source.x)
-                .attr('y1', d => d.source.y)
-                .attr('x2', d => d.target.x)
-                .attr('y2', d => d.target.y);
+                .attr('x1', d => {
+                    const radius = getNodeRadius(d.source);
+                    const dx = d.target.x - d.source.x;
+                    const dy = d.target.y - d.source.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    if (distance === 0) return d.source.x;
+                    return d.source.x + (dx / distance) * radius;
+                })
+                .attr('y1', d => {
+                    const radius = getNodeRadius(d.source);
+                    const dx = d.target.x - d.source.x;
+                    const dy = d.target.y - d.source.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    if (distance === 0) return d.source.y;
+                    return d.source.y + (dy / distance) * radius;
+                })
+                .attr('x2', d => {
+                    const radius = getNodeRadius(d.target);
+                    const dx = d.target.x - d.source.x;
+                    const dy = d.target.y - d.source.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    if (distance === 0) return d.target.x;
+                    return d.target.x - (dx / distance) * radius;
+                })
+                .attr('y2', d => {
+                    const radius = getNodeRadius(d.target);
+                    const dx = d.target.x - d.source.x;
+                    const dy = d.target.y - d.source.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    if (distance === 0) return d.target.y;
+                    return d.target.y - (dy / distance) * radius;
+                });
+
+            // Update arrows
+            arrows.attr('d', calculateArrowPath);
 
             node.attr('transform', d => `translate(${d.x},${d.y})`);
 
@@ -638,6 +740,7 @@
                 node.style('opacity', 1);
                 link.style('opacity', 0.7);
                 label.style('opacity', 1);
+                arrows.style('opacity', 0.7);
             }
 
             // If clicking the same node, deselect and reset zoom
@@ -679,6 +782,7 @@
             node.style('opacity', 0.2);
             link.style('opacity', 0.1);
             label.style('opacity', 0.2);
+            arrows.style('opacity', 0.1);
 
             // Highlight selected node and connections
             node.filter(function(n) {
@@ -688,6 +792,11 @@
 
             link.filter(function(l) {
                 return connectedLinks.has(l);
+            }).style('opacity', 1);
+
+            // Highlight arrows for connected links
+            arrows.filter(function(a) {
+                return connectedLinks.has(a.__data__);
             }).style('opacity', 1);
 
             label.filter(function(l) {
@@ -738,6 +847,7 @@
             node.style('opacity', 1);
             link.style('opacity', 0.7);
             label.style('opacity', 1);
+            arrows.style('opacity', 0.7);
             selectedNode = null;
             searchResults.clear();
             currentSearch = '';
