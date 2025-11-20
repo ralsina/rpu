@@ -347,11 +347,11 @@ class ProjectDataCollector
     end
 
     if shard_data["name"]?
-      return shard_data["name"].as_s
+      return shard_data["name"].as_s.downcase
     end
 
-    # Fallback to repository name
-    repo_path.split("/")[-1]
+    # Fallback to repository name (normalized to lowercase)
+    repo_path.split("/")[-1].downcase
   end
 
   # Parse dependencies from shard YAML data
@@ -364,11 +364,11 @@ class ProjectDataCollector
       case deps_data
       when .as_h?
         deps_data.as_h.each_key do |dep|
-          dependencies << dep.to_s
+          dependencies << dep.to_s.downcase
         end
       when .as_a?
         deps_data.as_a.each do |dep|
-          dependencies << dep.to_s
+          dependencies << dep.to_s.downcase
         end
       else
         # Skip if we can't parse the dependencies structure
