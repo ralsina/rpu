@@ -180,7 +180,7 @@ class ProjectDataCollector
   end
 
   # Make a GitHub API request with rate limiting
-  private def github_api_request(endpoint : String) : JSON::Any?
+  private def github_api_request(endpoint : String, retry_count : Int32 = 0) : JSON::Any?
     sleep(RATE_LIMIT_DELAY.seconds) # Rate limiting
 
     url = "https://api.github.com/#{endpoint}"
@@ -190,9 +190,14 @@ class ProjectDataCollector
         if response.success?
           JSON.parse(response.body_io)
         elsif response.status_code == 403
-          puts Colors.yellow("→ Rate limit hit for #{endpoint}, waiting...")
-          sleep(60.seconds)
-          github_api_request(endpoint) # Retry once
+          if retry_count < 3
+            puts Colors.yellow("→ Rate limit hit for #{endpoint}, waiting... (retry #{retry_count + 1}/3)")
+            sleep(60.seconds)
+            github_api_request(endpoint, retry_count + 1)
+          else
+            puts Colors.red("→ Max retries exceeded for #{endpoint}, skipping...")
+            nil
+          end
         elsif response.status_code == 404
           nil # Not found
         else
@@ -382,14 +387,14 @@ class ProjectDataCollector
     )
 
     # Set additional properties
-    project.description = repo_info["description"]?.try(&.as_s) || ""
-    project.fork = repo_info["fork"].as_bool
+    project.description = repo_info["description"]?.try(&.as_s?) || ""
+    project.fork = repo_info["fork"]?.try(&.as_bool?) || false
     project.dependencies = dependencies
-    project.last_modified = repo_info["pushed_at"]?.try { |t| Time.parse_rfc3339(t.as_s) }
+    project.last_modified = repo_info["pushed_at"]?.try(&.as_s?).try { |time_str| Time.parse_rfc3339(time_str) }
 
     # Get Crystal LOC from GitHub API language statistics
     languages = get_repo_languages(repo)
-    project.loc = languages.try(&.["Crystal"]?.try(&.as_i)) || repo_info["size"].as_i
+    project.loc = languages.try(&.["Crystal"]?.try(&.as_i)) || repo_info["size"]?.try(&.as_i?) || 0
 
     @projects << project
 
