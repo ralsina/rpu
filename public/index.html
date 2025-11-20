@@ -41,7 +41,6 @@
 
         #search-input {
             width: 100%;
-            max-width: 400px;
             padding: 0.5rem;
             border: 1px solid #30363d;
             border-radius: 6px;
@@ -240,6 +239,13 @@
                 <p>Interactive dependency graph</p>
             </div>
 
+            <div class="search-container">
+                <input type="text" id="search-input" placeholder="Search projects..." autocomplete="off">
+                <div id="search-results" style="display: none;">
+                    <span id="search-count"></span> matching projects
+                </div>
+            </div>
+
             <div class="controls">
                 <button onclick="resetZoom()">Reset Zoom</button>
             </div>
@@ -306,13 +312,6 @@
         </div>
 
         <div class="main-content">
-            <div class="search-container">
-                <input type="text" id="search-input" placeholder="Search projects..." autocomplete="off">
-                <button id="clear-search" style="display: none;">Clear</button>
-                <div id="search-results" style="display: none;">
-                    <span id="search-count"></span> matching projects
-                </div>
-            </div>
             <div class="stats" id="stats">
                 <div class="stat">
                     <div class="stat-value" id="project-count">0</div>
@@ -341,7 +340,7 @@
     <script>
         let projects = [];
         let simulation;
-        let svg, g, link, node, label, arrows;
+        let svg, g, link, node, label, arrows, zoomBehavior;
         let showLabels = true;
         let showExternal = true;
         let selectedNode = null;
@@ -372,13 +371,13 @@
                 .attr('height', height);
 
             // Add zoom behavior
-            const zoom = d3.zoom()
+            zoomBehavior = d3.zoom()
                 .scaleExtent([0.1, 5])
                 .on('zoom', (event) => {
                     g.attr('transform', event.transform);
                 });
 
-            svg.call(zoom);
+            svg.call(zoomBehavior);
 
             g = svg.append('g');
 
@@ -719,23 +718,31 @@
                     .scale(scale)
                     .translate(-centerX, -centerY);
 
-                svg.transition().duration(750).call(
-                    d3.zoom().transform,
-                    transform
-                );
+                if (svg && zoomBehavior) {
+                    svg.transition().duration(750).call(
+                        zoomBehavior.transform,
+                        transform
+                    );
+                }
             }
         }
 
         function resetZoom() {
-            svg.transition().duration(750).call(
-                d3.zoom().transform,
-                d3.zoomIdentity
-            );
-            // Reset node focus
+            if (svg && zoomBehavior) {
+                svg.transition().duration(750).call(
+                    zoomBehavior.transform,
+                    d3.zoomIdentity
+                );
+            }
+            // Reset node focus and search
             node.style('opacity', 1);
             link.style('opacity', 0.7);
             label.style('opacity', 1);
             selectedNode = null;
+            searchResults.clear();
+            currentSearch = '';
+            document.getElementById('search-input').value = '';
+            document.getElementById('search-results').style.display = 'none';
         }
 
         // Add click handler to background to deselect
@@ -788,13 +795,16 @@
                 return;
             }
 
-            projects.forEach(project => {
-                if (project.name.toLowerCase().includes(currentSearch) ||
-                    project.description?.toLowerCase().includes(currentSearch) ||
-                    project.shard_name.toLowerCase().includes(currentSearch)) {
-                    searchResults.add(project.id);
-                }
-            });
+            // Search through ALL nodes (projects, external dependencies, forks)
+            if (node) {
+                node.each(function(d) {
+                    if (d.name.toLowerCase().includes(currentSearch) ||
+                        d.description?.toLowerCase().includes(currentSearch) ||
+                        d.shard_name.toLowerCase().includes(currentSearch)) {
+                        searchResults.add(d.id);
+                    }
+                });
+            }
 
             updateSearchHighlight();
         }
@@ -802,43 +812,115 @@
         function updateSearchHighlight() {
             if (!node) return;
 
-            // Reset all nodes to normal opacity first
-            node.style('opacity', d => selectedNode && !searchResults.has(d.id) ? 0.2 : 1);
-            link.style('opacity', d => {
-                if (searchResults.size === 0) return 0.7;
-                const sourceId = typeof d.source === 'object' ? d.source.id : d.source;
-                const targetId = typeof d.target === 'object' ? d.target.id : d.target;
-                const isHighlighted = searchResults.has(sourceId) || searchResults.has(targetId);
-                return isHighlighted ? 1 : 0.1;
-            });
-            label.style('opacity', d => selectedNode && !searchResults.has(d.id) ? 0.2 : 1);
+            // Reset all styling first
+            node.style('opacity', 1).attr('stroke', null).attr('stroke-width', null);
+            link.style('opacity', 0.7);
+            label.style('opacity', 1).style('font-weight', 'normal');
 
-            // Highlight matching nodes
+            // Highlight matching nodes and zoom to them
             if (searchResults.size > 0) {
+                // Dim non-matching nodes
+                node.style('opacity', d => searchResults.has(d.id) ? 1 : 0.2);
+
+                // Highlight matching nodes with yellow stroke
                 node.filter(d => searchResults.has(d.id))
                     .style('opacity', 1)
                     .attr('stroke', '#ffeb3b')
                     .attr('stroke-width', d => d.fork ? '4px' : '3px');
 
+                // Highlight links connected to matched nodes
+                if (link) {
+                    link.style('opacity', d => {
+                        const sourceId = typeof d.source === 'object' ? d.source.id : d.source;
+                        const targetId = typeof d.target === 'object' ? d.target.id : d.target;
+                        const isHighlighted = searchResults.has(sourceId) || searchResults.has(targetId);
+                        return isHighlighted ? 1 : 0.1;
+                    });
+                }
+
                 // Highlight labels of matching nodes
-                label.filter(d => searchResults.has(d.id))
-                    .style('opacity', 1)
-                    .style('font-weight', 'bold');
+                if (label) {
+                    label.style('opacity', d => searchResults.has(d.id) ? 1 : 0.2);
+                    label.filter(d => searchResults.has(d.id))
+                        .style('font-weight', 'bold');
+                }
+
+                // Zoom to search results
+                zoomToSearchResults();
             }
 
             // Update search results display
             const searchResultsDiv = document.getElementById('search-results');
             const searchCount = document.getElementById('search-count');
-            const clearButton = document.getElementById('clear-search');
 
             if (currentSearch) {
                 searchCount.textContent = searchResults.size;
                 searchResultsDiv.style.display = 'block';
-                clearButton.style.display = 'inline-block';
             } else {
                 searchResultsDiv.style.display = 'none';
-                clearButton.style.display = 'none';
             }
+        }
+
+        function zoomToSearchResults() {
+            if (!svg || !zoomBehavior || searchResults.size === 0 || !node) return;
+
+            // Get positions of matched nodes from the D3 selection
+            const matchedNodeElements = node.filter(d => searchResults.has(d.id));
+
+            if (matchedNodeElements.empty()) return;
+
+            // Calculate bounding box of matched nodes
+            let minX = Infinity, maxX = -Infinity;
+            let minY = Infinity, maxY = -Infinity;
+            let hasValidPositions = false;
+
+            matchedNodeElements.each(function(d) {
+                // Use the force simulation's current positions or fall back to node data
+                const x = d.x || 0;
+                const y = d.y || 0;
+
+                if (!isNaN(x) && !isNaN(y)) {
+                    minX = Math.min(minX, x - 30);
+                    maxX = Math.max(maxX, x + 30);
+                    minY = Math.min(minY, y - 30);
+                    maxY = Math.max(maxY, y + 30);
+                    hasValidPositions = true;
+                }
+            });
+
+            // If no valid positions, wait for simulation to stabilize
+            if (!hasValidPositions || !isFinite(minX) || !isFinite(maxX) || !isFinite(minY) || !isFinite(maxY)) {
+                // Retry after a short delay to let the simulation settle
+                setTimeout(() => {
+                    if (searchResults.size > 0) {
+                        zoomToSearchResults();
+                    }
+                }, 500);
+                return;
+            }
+
+            const width = maxX - minX;
+            const height = maxY - minY;
+            const centerX = (minX + maxX) / 2;
+            const centerY = (minY + maxY) / 2;
+
+            const svgWidth = +svg.attr('width');
+            const svgHeight = +svg.attr('height');
+
+            // Ensure we have valid dimensions
+            if (width <= 0 || height <= 0) return;
+
+            const scale = Math.min(svgWidth / width, svgHeight / height) * 0.8; // 0.8 for padding
+
+            const transform = d3.zoomIdentity
+                .translate(svgWidth / 2, svgHeight / 2)
+                .scale(scale)
+                .translate(-centerX, -centerY);
+
+            svg.transition().duration(750).call(
+                zoomBehavior.transform,
+                transform
+            );
         }
 
         function resetSearchHighlight() {
@@ -849,14 +931,23 @@
             link.style('opacity', d => selectedNode ? 0.1 : 0.7);
             label.style('opacity', d => selectedNode && d.id !== selectedNode.id ? 0.2 : 1);
 
-            // Remove search-specific styling
-            node.style('stroke', d => d.fork ? '#ff6b35' : '#fff')
-                .style('stroke-width', d => d.fork ? '3px' : '2px');
+            // Remove search-specific styling (restore normal appearance)
+            if (selectedNode) {
+                // If a node is focused, maintain focus appearance
+                node.style('opacity', d => d.id === selectedNode.id ? 1 : 0.2);
+                link.style('opacity', 0.1);
+                label.style('opacity', d => d.id === selectedNode.id ? 1 : 0.2);
+            } else {
+                // Normal appearance
+                node.style('opacity', 1);
+                link.style('opacity', 0.7);
+                label.style('opacity', 1);
+            }
+
             label.style('font-weight', 'normal');
 
             // Hide search results display
             document.getElementById('search-results').style.display = 'none';
-            document.getElementById('clear-search').style.display = 'none';
         }
 
         // Search event listeners
